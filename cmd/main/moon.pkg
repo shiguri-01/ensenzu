@@ -1,0 +1,7 @@
+// import {
+//   "shiguri-01/ensenzu" @lib,
+// }
+
+options(
+  "is-main": true,
+)
