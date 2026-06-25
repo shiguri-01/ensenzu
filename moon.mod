@@ -19,8 +19,12 @@ repository = ""
 
 license = "Apache-2.0"
 
-keywords = []
+keywords = [ ]
 
 preferred_target = "wasm-gc"
 
 description = ""
+
+import {
+  "bobzhang/vg@0.3.0",
+}

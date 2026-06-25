@@ -1,0 +1,116 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "shiguri-01/ensenzu"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn branch_currents(CircuitParams, slip~ : Double) -> BranchCurrents raise CircleDiagramError
+
+pub fn default_size() -> DiagramSize
+
+pub fn make_circle_diagram(CircuitParams, samples? : Int, min_slip? : Double) -> CircleDiagram raise CircleDiagramError
+
+pub fn operating_point(CircuitParams, slip~ : Double) -> OperatingPoint raise CircleDiagramError
+
+pub fn render_svg(CircleDiagram, size? : DiagramSize) -> String raise CircleDiagramError
+
+pub fn sample_params() -> CircuitParams
+
+// Errors
+pub(all) suberror CircleDiagramError {
+  InvalidInput(String)
+  GeometryError(String)
+} derive(@debug.Debug)
+
+// Types and methods
+pub struct BranchCurrents {
+  exciting : Complex
+  rotor : Complex
+  input : Complex
+} derive(Eq, @debug.Debug)
+
+pub struct CircleDiagram {
+  params : CircuitParams
+  points : Array[DiagramPoint]
+  bounds : PlotBounds
+  no_load : DiagramPoint
+  locked_rotor : DiagramPoint
+  max_torque : DiagramPoint
+} derive(Eq, @debug.Debug)
+
+pub(all) struct CircuitParams {
+  phase_voltage : Double
+  frequency : Double
+  poles : Int
+  phases : Int
+  r1 : Double
+  x1 : Double
+  r2 : Double
+  x2 : Double
+  xm : Double
+  core_loss_resistance : Double
+} derive(Eq, @debug.Debug)
+
+pub struct Complex {
+  re : Double
+  im : Double
+} derive(Eq, @debug.Debug)
+pub fn Complex::Complex(re~ : Double, im~ : Double) -> Self
+pub fn Complex::abs(Self) -> Double
+pub fn Complex::abs2(Self) -> Double
+pub fn Complex::conj(Self) -> Self
+pub fn Complex::scale(Self, factor~ : Double) -> Self
+pub impl Add for Complex
+pub impl Div for Complex
+pub impl Mul for Complex
+pub impl Sub for Complex
+
+type Construction derive(Eq, @debug.Debug)
+
+pub struct DiagramPoint {
+  x : Double
+  y : Double
+  point : OperatingPoint
+} derive(Eq, @debug.Debug)
+
+pub(all) struct DiagramSize {
+  width : Double
+  height : Double
+} derive(Eq, @debug.Debug)
+
+type LabelAnchor derive(Eq, @debug.Debug)
+
+pub struct OperatingPoint {
+  slip : Double
+  input_current : Complex
+  rotor_current : Complex
+  exciting_current : Complex
+  input_power : Double
+  power_factor : Double
+  air_gap_power : Double
+  output_power : Double
+  torque : Double
+  efficiency : Double
+} derive(Eq, @debug.Debug)
+
+pub struct PlotBounds {
+  min_x : Double
+  max_x : Double
+  min_y : Double
+  max_y : Double
+} derive(Eq, @debug.Debug)
+
+type PlotPoint derive(Eq, @debug.Debug)
+
+type ScreenOffset derive(Eq, @debug.Debug)
+
+type StrokeWeight derive(Eq, @debug.Debug)
+
+type Viewport derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits
+

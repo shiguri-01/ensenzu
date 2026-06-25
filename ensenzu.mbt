@@ -1,3 +1,10 @@
-// Main package file for your library code.
-// Put public APIs and shared helpers here.
-// Keep blocks small and focused for easy refactors.
+///|
+pub(all) struct DiagramSize {
+  width : Double
+  height : Double
+} derive(Debug, Eq)
+
+///|
+pub fn default_size() -> DiagramSize {
+  { width: 900.0, height: 640.0 }
+}

@@ -1,7 +1,6 @@
 ///|
-/// Entry point for the CLI or runnable program in this template.
-/// Keep main focused; move logic into the library package.
-/// Run with `moon run cmd/main` from the project root.
-fn main {
-  println("Hello")
+fn main raise {
+  let params = @ensenzu.sample_params()
+  let diagram = @ensenzu.make_circle_diagram(params)
+  println(@ensenzu.render_svg(diagram))
 }
