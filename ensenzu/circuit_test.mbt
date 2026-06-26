@@ -73,6 +73,17 @@ test "invalid slip above locked rotor returns an error" {
 }
 
 ///|
+test "invalid render size returns an error" {
+  let diagram = make_circle_diagram(sample_params(), samples=16)
+  try ignore(render_svg(diagram, size={ width: 80.0, height: 120.0 })) catch {
+    InvalidInput(_) => ()
+    _ => fail("expected InvalidInput")
+  } noraise {
+    _ => fail("expected invalid render size to fail")
+  }
+}
+
+///|
 test "negative leakage reactance returns an error" {
   let params : CircuitParams = {
     phase_voltage: 200.0,

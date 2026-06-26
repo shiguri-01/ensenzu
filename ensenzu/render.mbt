@@ -125,6 +125,7 @@ pub fn render_svg(
   diagram : CircleDiagram,
   size? : DiagramSize = default_size(),
 ) -> String raise CircleDiagramError {
+  validate_render_size(size)
   let construction = make_construction(diagram)
   let vp = Viewport(size, construction.bounds)
   let doc = @svg.new_svg(size.width, size.height).render_rectangle(
@@ -139,6 +140,16 @@ pub fn render_svg(
   let doc = render_circle_arc(doc, vp, construction)
   let doc = render_point_labels(doc, vp, construction)
   doc.to_string()
+}
+
+///|
+fn validate_render_size(size : DiagramSize) -> Unit raise CircleDiagramError {
+  guard size.width > VIEWPORT_MARGIN_LEFT + VIEWPORT_MARGIN_RIGHT else {
+    raise InvalidInput("diagram width is too small for the viewport margins")
+  }
+  guard size.height > VIEWPORT_MARGIN_TOP + VIEWPORT_MARGIN_BOTTOM else {
+    raise InvalidInput("diagram height is too small for the viewport margins")
+  }
 }
 
 ///|

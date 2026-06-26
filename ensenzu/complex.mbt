@@ -50,9 +50,3 @@ pub fn Complex::abs2(self : Self) -> Double {
 pub fn Complex::abs(self : Self) -> Double {
   self.abs2().sqrt()
 }
-
-///|
-pub fn Complex::scale(self : Self, factor~ : Double) -> Self {
-  let k = factor
-  { re: self.re * k, im: self.im * k }
-}

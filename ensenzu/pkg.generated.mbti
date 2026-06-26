@@ -61,7 +61,6 @@ pub fn Complex::Complex(re~ : Double, im~ : Double) -> Self
 pub fn Complex::abs(Self) -> Double
 pub fn Complex::abs2(Self) -> Double
 pub fn Complex::conj(Self) -> Self
-pub fn Complex::scale(Self, factor~ : Double) -> Self
 pub impl Add for Complex
 pub impl Div for Complex
 pub impl Mul for Complex

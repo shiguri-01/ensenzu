@@ -182,10 +182,14 @@ fn PlotPoint::distance(a : Self, b : Self) -> Double {
 
 ///|
 fn checked_sqrt(value : Double) -> Double raise CircleDiagramError {
-  guard value >= 0.0 else {
-    raise GeometryError("square root argument must be non-negative")
+  if value < 0.0 {
+    guard value.abs() <= NUMERIC_TOLERANCE else {
+      raise GeometryError("square root argument must be non-negative")
+    }
+    0.0
+  } else {
+    value.sqrt()
   }
-  value.sqrt()
 }
 
 ///|
