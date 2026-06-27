@@ -1,0 +1,101 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "shiguri-01/app"
+
+import {
+  "moonbit-community/rabbita",
+  "moonbitlang/core/debug",
+  "shiguri-01/ensenzu",
+}
+
+// Values
+pub fn default_app_fields() -> AppFields
+
+pub fn default_app_params() -> AppParams
+
+pub fn initial_model() -> Model
+
+pub fn make_app() -> @rabbita.Cell
+
+pub fn model_from_fields(AppFields, previous_svg? : String, show_advanced? : Bool) -> Model
+
+pub fn mount_app() -> Unit
+
+pub fn render_app_svg(AppParams) -> String raise @ensenzu.CircleDiagramError
+
+pub fn render_default_svg() -> String raise @ensenzu.CircleDiagramError
+
+pub fn svg_data_uri(String) -> String
+
+// Errors
+pub(all) suberror AppInputError {
+  InvalidField(String, String)
+} derive(@debug.Debug)
+
+// Types and methods
+pub(all) struct AppFields {
+  phase_voltage : String
+  frequency : String
+  poles : String
+  phases : String
+  r1 : String
+  x1 : String
+  r2 : String
+  x2 : String
+  xm : String
+  core_loss_resistance : String
+  width : String
+  height : String
+} derive(Eq, @debug.Debug)
+pub fn AppFields::to_params(Self) -> AppParams raise AppInputError
+
+pub(all) struct AppParams {
+  phase_voltage : Double
+  frequency : Double
+  poles : Int
+  phases : Int
+  r1 : Double
+  x1 : Double
+  r2 : Double
+  x2 : Double
+  xm : Double
+  core_loss_resistance : Double
+  width : Double
+  height : Double
+} derive(Eq, @debug.Debug)
+
+pub(all) enum FieldKey {
+  PhaseVoltage
+  Frequency
+  Poles
+  Phases
+  R1
+  X1
+  R2
+  X2
+  Xm
+  CoreLossResistance
+  Width
+  Height
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Model {
+  fields : AppFields
+  svg : String
+  error : String?
+  show_advanced : Bool
+  confirm_reset : Bool
+} derive(Eq, @debug.Debug)
+
+pub(all) enum Msg {
+  Change(FieldKey, String)
+  RequestReset
+  Reset
+  CancelReset
+  Download
+  ToggleAdvanced
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits
+

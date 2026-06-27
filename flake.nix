@@ -32,6 +32,8 @@
           devshells.default = {
             packages = with pkgs; [
               moonbit-bin.moonbit.latest
+              nodejs
+              pnpm
             ];
           };
         };
