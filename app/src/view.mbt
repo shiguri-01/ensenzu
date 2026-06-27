@@ -89,20 +89,20 @@ fn view(emit : @rabbita.Emit[Msg], model : Model) -> @rabbita.Html {
             symbol="x2",
           ),
           field(
-            name="励磁リアクタンス",
-            unit="Ω",
-            key=Xm,
-            value=model.fields.xm,
-            emit~,
-            symbol="xm",
-          ),
-          field(
             name="鉄損抵抗",
             unit="Ω",
             key=CoreLossResistance,
             value=model.fields.core_loss_resistance,
             emit~,
             symbol="rc",
+          ),
+          field(
+            name="励磁リアクタンス",
+            unit="Ω",
+            key=Xm,
+            value=model.fields.xm,
+            emit~,
+            symbol="xm",
           ),
         ]),
         fieldset_view(title="動作点", children=[
