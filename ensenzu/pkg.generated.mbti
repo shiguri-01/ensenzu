@@ -10,15 +10,15 @@ pub fn branch_currents(CircuitParams, slip~ : Double) -> BranchCurrents raise Ci
 
 pub fn default_size() -> DiagramSize
 
-pub fn make_circle_diagram(CircuitParams, samples? : Int, min_slip? : Double) -> CircleDiagram raise CircleDiagramError
+pub fn example_params() -> CircuitParams
+
+pub fn make_circle_diagram(CircuitParams, point_count? : Int, min_slip? : Double) -> CircleDiagram raise CircleDiagramError
 
 pub fn operating_point(CircuitParams, slip~ : Double) -> OperatingPoint raise CircleDiagramError
 
 pub fn read_at_output_power(CircleDiagram, output_power~ : Double) -> OperatingReadout raise CircleDiagramError
 
 pub fn render_svg(CircleDiagram, size? : DiagramSize) -> String raise CircleDiagramError
-
-pub fn sample_params() -> CircuitParams
 
 // Errors
 pub(all) suberror CircleDiagramError {

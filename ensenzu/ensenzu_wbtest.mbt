@@ -20,7 +20,7 @@ fn perpendicular(
 
 ///|
 test "construction invariants" {
-  let diagram = make_circle_diagram(sample_params())
+  let diagram = make_circle_diagram(example_params())
   let k = make_sample_readout_construction(diagram)
   assert_true(k.d.x > k.o.x)
   assert_true(close_to(k.c.y, k.n.y))

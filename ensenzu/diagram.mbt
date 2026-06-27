@@ -24,7 +24,7 @@ pub struct CircleDiagram {
 } derive(Debug, Eq)
 
 ///|
-const DEFAULT_DIAGRAM_SAMPLES : Int = 96
+const DEFAULT_POINT_COUNT : Int = 96
 
 ///|
 const DEFAULT_MIN_SLIP : Double = 0.01
@@ -41,17 +41,19 @@ const DIAGRAM_BOUNDS_MIN_PADDING : Double = 1.0
 ///|
 pub fn make_circle_diagram(
   params : CircuitParams,
-  samples? : Int = DEFAULT_DIAGRAM_SAMPLES,
+  point_count? : Int = DEFAULT_POINT_COUNT,
   min_slip? : Double = DEFAULT_MIN_SLIP,
 ) -> CircleDiagram raise CircleDiagramError {
-  guard samples >= 2 else { raise InvalidInput("samples must be at least 2") }
+  guard point_count >= 2 else {
+    raise InvalidInput("point_count must be at least 2")
+  }
   guard min_slip >= MINIMUM_SLIP else {
     raise InvalidInput("min_slip is below MINIMUM_SLIP")
   }
   guard min_slip <= 1.0 else {
     raise InvalidInput("min_slip must not exceed 1")
   }
-  let count = samples
+  let count = point_count
   let floor_slip = min_slip
   let points : Array[DiagramPoint] = []
   for i in 0..<count {

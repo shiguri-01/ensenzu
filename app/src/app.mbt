@@ -71,7 +71,7 @@ pub(all) suberror AppInputError {
 } derive(Debug)
 
 ///|
-const DEFAULT_APP_SAMPLES : Int = 96
+const DEFAULT_APP_POINT_COUNT : Int = 96
 
 ///|
 const DEFAULT_APP_MIN_SLIP : Double = 0.01
@@ -84,7 +84,7 @@ const MAX_SVG_HEIGHT : Double = 1400.0
 
 ///|
 pub fn default_app_params() -> AppParams {
-  let sample = @ensenzu.sample_params()
+  let sample = @ensenzu.example_params()
   {
     phase_voltage: sample.phase_voltage,
     frequency: sample.frequency,
@@ -221,7 +221,7 @@ pub fn render_app_svg(
 ) -> String raise @ensenzu.CircleDiagramError {
   let diagram = @ensenzu.make_circle_diagram(
     params.to_circuit_params(),
-    samples=DEFAULT_APP_SAMPLES,
+    point_count=DEFAULT_APP_POINT_COUNT,
     min_slip=DEFAULT_APP_MIN_SLIP,
   )
   @ensenzu.render_svg(diagram, size={

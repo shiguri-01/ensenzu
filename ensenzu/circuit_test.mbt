@@ -17,7 +17,7 @@ fn almost_equal(a : Double, b : Double) -> Bool {
 
 ///|
 test "operating points are finite and plausible" {
-  let params = sample_params()
+  let params = example_params()
   let no_load = operating_point(params, slip=0.01)
   let locked = operating_point(params, slip=1.0)
   assert_true(no_load.input_current.abs() > 0.0)
@@ -27,8 +27,8 @@ test "operating points are finite and plausible" {
 }
 
 ///|
-test "diagram samples and svg output" {
-  let diagram = make_circle_diagram(sample_params(), samples=16)
+test "diagram point count and svg output" {
+  let diagram = make_circle_diagram(example_params(), point_count=16)
   assert_eq(diagram.points.length(), 16)
   let svg = render_svg(diagram, size={ width: 480.0, height: 320.0 })
   assert_true(svg.contains("<svg"))
@@ -37,8 +37,8 @@ test "diagram samples and svg output" {
 
 ///|
 test "diagram lengths and characteristics are available" {
-  let params = sample_params()
-  let diagram = make_circle_diagram(params, samples=32)
+  let params = example_params()
+  let diagram = make_circle_diagram(params, point_count=32)
   let output_power = operating_point(params, slip=0.05).output_power
   let readout = read_at_output_power(diagram, output_power~)
   let lengths = readout.characteristic_line_lengths()
@@ -68,7 +68,7 @@ test "diagram lengths and characteristics are available" {
 
 ///|
 test "invalid minimum slip returns an error" {
-  try ignore(make_circle_diagram(sample_params(), min_slip=0.0)) catch {
+  try ignore(make_circle_diagram(example_params(), min_slip=0.0)) catch {
     InvalidInput(_) => ()
     _ => fail("expected InvalidInput")
   } noraise {
@@ -100,7 +100,7 @@ test "invalid circuit parameters return an error" {
 
 ///|
 test "invalid slip above locked rotor returns an error" {
-  try ignore(operating_point(sample_params(), slip=1.1)) catch {
+  try ignore(operating_point(example_params(), slip=1.1)) catch {
     InvalidInput(_) => ()
     _ => fail("expected InvalidInput")
   } noraise {
@@ -110,7 +110,7 @@ test "invalid slip above locked rotor returns an error" {
 
 ///|
 test "invalid render size returns an error" {
-  let diagram = make_circle_diagram(sample_params(), samples=16)
+  let diagram = make_circle_diagram(example_params(), point_count=16)
   try ignore(render_svg(diagram, size={ width: 80.0, height: 120.0 })) catch {
     InvalidInput(_) => ()
     _ => fail("expected InvalidInput")
