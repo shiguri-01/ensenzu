@@ -12,6 +12,7 @@ pub(all) struct AppParams {
   core_loss_resistance : Double
   width : Double
   height : Double
+  output_power : Double
 } derive(Debug, Eq)
 
 ///|
@@ -28,6 +29,7 @@ pub(all) struct AppFields {
   core_loss_resistance : String
   width : String
   height : String
+  output_power : String
 } derive(Debug, Eq)
 
 ///|
@@ -44,12 +46,15 @@ pub(all) enum FieldKey {
   CoreLossResistance
   Width
   Height
+  OutputPower
 } derive(Debug, Eq)
 
 ///|
 pub(all) struct Model {
   fields : AppFields
   svg : String
+  characteristics : @ensenzu.CircleDiagramCharacteristics?
+  line_lengths : @ensenzu.CharacteristicLineLengths?
   error : String?
   show_advanced : Bool
   confirm_reset : Bool
@@ -98,6 +103,7 @@ pub fn default_app_params() -> AppParams {
     core_loss_resistance: sample.core_loss_resistance,
     width: 900.0,
     height: 640.0,
+    output_power: 1000.0,
   }
 }
 
@@ -122,6 +128,7 @@ fn AppFields::from_params(params : AppParams) -> Self {
     core_loss_resistance: params.core_loss_resistance.to_string(),
     width: params.width.to_string(),
     height: params.height.to_string(),
+    output_power: params.output_power.to_string(),
   }
 }
 
@@ -140,6 +147,7 @@ fn AppFields::set(self : Self, key : FieldKey, value : String) -> Self {
     CoreLossResistance => { ..self, core_loss_resistance: value }
     Width => { ..self, width: value }
     Height => { ..self, height: value }
+    OutputPower => { ..self, output_power: value }
   }
 }
 
@@ -179,6 +187,7 @@ pub fn AppFields::to_params(self : Self) -> AppParams raise AppInputError {
     ),
     width: parse_double("SVG幅", self.width),
     height: parse_double("SVG高さ", self.height),
+    output_power: parse_double("出力電力", self.output_power),
   }
   params.validate_for_interactive_render()
   params
@@ -216,14 +225,21 @@ fn AppParams::to_circuit_params(self : Self) -> @ensenzu.CircuitParams {
 }
 
 ///|
-pub fn render_app_svg(
+fn build_diagram(
   params : AppParams,
-) -> String raise @ensenzu.CircleDiagramError {
-  let diagram = @ensenzu.make_circle_diagram(
+) -> @ensenzu.CircleDiagram raise @ensenzu.CircleDiagramError {
+  @ensenzu.make_circle_diagram(
     params.to_circuit_params(),
     point_count=DEFAULT_APP_POINT_COUNT,
     min_slip=DEFAULT_APP_MIN_SLIP,
   )
+}
+
+///|
+pub fn render_app_svg(
+  params : AppParams,
+) -> String raise @ensenzu.CircleDiagramError {
+  let diagram = build_diagram(params)
   @ensenzu.render_svg(diagram, size={
     width: params.width,
     height: params.height,
@@ -254,13 +270,56 @@ priv suberror RenderError {
 }
 
 ///|
-fn svg_from_fields(fields : AppFields) -> String raise RenderError {
+priv struct RenderResult {
+  svg : String
+  characteristics : @ensenzu.CircleDiagramCharacteristics?
+  line_lengths : @ensenzu.CharacteristicLineLengths?
+}
+
+///|
+fn read_operating_values(
+  diagram : @ensenzu.CircleDiagram,
+  output_power~ : Double,
+) -> (
+  @ensenzu.CircleDiagramCharacteristics?,
+  @ensenzu.CharacteristicLineLengths?,
+) {
+  if output_power <= 0.0 {
+    (None, None)
+  } else {
+    try {
+      let readout = @ensenzu.read_at_output_power(diagram, output_power~)
+      (
+        Some(readout.characteristics()),
+        Some(readout.characteristic_line_lengths()),
+      )
+    } catch {
+      _ => (None, None)
+    } noraise {
+      x => x
+    }
+  }
+}
+
+///|
+fn render_from_fields(fields : AppFields) -> RenderResult raise RenderError {
   let params = fields.to_params() catch {
     InvalidField(label, msg) => raise RenderError("\{label}: \{msg}")
   }
-  render_app_svg(params) catch {
+  let diagram = build_diagram(params) catch {
     InvalidInput(msg) | GeometryError(msg) => raise RenderError(msg)
   }
+  let svg = @ensenzu.render_svg(diagram, size={
+    width: params.width,
+    height: params.height,
+  }) catch {
+    InvalidInput(msg) | GeometryError(msg) => raise RenderError(msg)
+  }
+  let (characteristics, line_lengths) = read_operating_values(
+    diagram,
+    output_power=params.output_power,
+  )
+  { svg, characteristics, line_lengths }
 }
 
 ///|
@@ -273,15 +332,26 @@ pub fn model_from_fields(
     {
       fields,
       svg: previous_svg,
+      characteristics: None,
+      line_lengths: None,
       error: Some(msg),
       show_advanced,
       confirm_reset: false,
     }
   }
-  try svg_from_fields(fields) catch {
+  try render_from_fields(fields) catch {
     RenderError(msg) => make_error(msg)
   } noraise {
-    svg => { fields, svg, error: None, show_advanced, confirm_reset: false }
+    result =>
+      {
+        fields,
+        svg: result.svg,
+        characteristics: result.characteristics,
+        line_lengths: result.line_lengths,
+        error: None,
+        show_advanced,
+        confirm_reset: false,
+      }
   }
 }
 

@@ -10,7 +10,8 @@
     --line-strong: #b9c3bf;
     --warning-bg: #fff5f5;
     --warning-ink: #7a2020;
-    --sidebar: 348px;
+    --sidebar: 360px;
+    --readout: 240px;
     --bar-h: 52px;
     --preview-pad: 14px;
     --preview-pad-2x: 28px;
@@ -44,7 +45,7 @@ p {
 
 .shell {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) var(--sidebar);
+    grid-template-columns: minmax(0, 1fr) var(--sidebar) var(--readout);
     min-height: 100svh;
 }
 
@@ -293,6 +294,71 @@ input:focus {
     font-size: 13px;
 }
 
+/* ── Readout column ─────────────────────────────────── */
+
+.readout {
+    display: grid;
+    grid-template-rows: var(--bar-h) minmax(0, 1fr);
+    background: var(--surface);
+    border-left: 1px solid var(--line);
+    overflow: hidden;
+}
+
+.readout-bar {
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.readout-rows {
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr) max-content;
+    gap: 8px 4px;
+    align-content: start;
+    padding: 14px 14px 20px;
+}
+
+.readout-section-title {
+    grid-column: 1 / -1;
+    width: 100%;
+    padding-bottom: 5px;
+    margin-top: 14px;
+    margin-bottom: 5px;
+    color: var(--muted);
+    border-bottom: 1px solid var(--line);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.readout-value {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+.readout-label,
+.readout-value {
+    color: var(--ink);
+    font-size: 14px;
+}
+
+.readout-unit {
+    color: var(--quiet);
+    font-size: 13px;
+}
+
+.readout-empty {
+    padding: 16px 14px;
+    color: var(--quiet);
+    font-size: 13px;
+    line-height: 1.6;
+    white-space: pre-line;
+}
+
 /* ── Advanced section ────────────────────────────────── */
 
 .advanced-wrap {
@@ -327,6 +393,16 @@ input:focus {
 }
 
 /* ── Responsive ──────────────────────────────────────── */
+
+@media (max-width: 1120px) {
+    .shell {
+        grid-template-columns: minmax(0, 1fr) var(--sidebar);
+    }
+
+    .readout {
+        display: none;
+    }
+}
 
 @media (max-width: 860px) {
     .shell {

@@ -1,6 +1,6 @@
-import { defineConfig } from 'vite'
-import rabbita from '@rabbita/vite'
+import { defineConfig } from "vite";
+import rabbita from "@rabbita/vite";
 
 export default defineConfig({
-  plugins: [rabbita({ mainPkgDir: 'cmd/main' })],
-})
+    plugins: [rabbita({ mainPkgDir: "src/cmd/main" })],
+});

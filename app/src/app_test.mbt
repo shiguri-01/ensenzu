@@ -27,3 +27,30 @@ test "interactive rendering rejects excessive svg size" {
   assert_true(model.error is Some(_))
   assert_true(model.svg.length() == 0)
 }
+
+///|
+test "characteristics are computed when output_power is valid" {
+  let model = @app.initial_model()
+  assert_true(model.characteristics is Some(_))
+  assert_true(model.line_lengths is Some(_))
+  guard model.characteristics is Some(c) else {
+    fail("expected characteristics")
+  }
+  guard model.line_lengths is Some(lengths) else {
+    fail("expected line lengths")
+  }
+  assert_true(c.input_current > 0.0)
+  assert_true(c.efficiency > 0.0 && c.efficiency < 1.0)
+  assert_true(c.power_factor > 0.0 && c.power_factor <= 1.0)
+  assert_eq(c.input_current, lengths.o_p)
+  assert_eq(c.active_current_component, lengths.o_m)
+}
+
+///|
+test "characteristics are None when output_power is zero" {
+  let fields = { ..@app.default_app_fields(), output_power: "0" }
+  let model = @app.model_from_fields(fields)
+  assert_true(model.error == None)
+  assert_true(model.characteristics == None)
+  assert_true(model.line_lengths == None)
+}
