@@ -14,6 +14,8 @@ pub fn make_circle_diagram(CircuitParams, samples? : Int, min_slip? : Double) ->
 
 pub fn operating_point(CircuitParams, slip~ : Double) -> OperatingPoint raise CircleDiagramError
 
+pub fn read_at_output_power(CircleDiagram, output_power~ : Double) -> OperatingReadout raise CircleDiagramError
+
 pub fn render_svg(CircleDiagram, size? : DiagramSize) -> String raise CircleDiagramError
 
 pub fn sample_params() -> CircuitParams
@@ -31,6 +33,19 @@ pub struct BranchCurrents {
   input : Complex
 } derive(Eq, @debug.Debug)
 
+pub struct CharacteristicLineLengths {
+  o_p : Double
+  o_m : Double
+  p_m : Double
+  p_a : Double
+  p_b : Double
+  a_b : Double
+  f_y : Double
+  f_s : Double
+  g_r : Double
+  g_s : Double
+} derive(Eq, @debug.Debug)
+
 pub struct CircleDiagram {
   params : CircuitParams
   points : Array[DiagramPoint]
@@ -38,6 +53,45 @@ pub struct CircleDiagram {
   no_load : DiagramPoint
   locked_rotor : DiagramPoint
   max_torque : DiagramPoint
+} derive(Eq, @debug.Debug)
+
+pub struct CircleDiagramCharacteristics {
+  slip : Double
+  input_current : Double
+  active_current_component : Double
+  power_factor : Double
+  input_power : Double
+  air_gap_power : Double
+  output_power : Double
+  torque : Double
+  efficiency : Double
+} derive(Eq, @debug.Debug)
+
+pub(all) enum CircleDiagramNode {
+  O
+  NPrime
+  SPrime
+  N
+  S
+  U
+  C
+  T
+  D
+  F
+  G
+  H
+  Pm
+  Qm
+  Pt
+  Qt
+  P
+  PPrime
+  A
+  B
+  L
+  M
+  Y
+  R
 } derive(Eq, @debug.Debug)
 
 pub(all) struct CircuitParams {
@@ -68,6 +122,11 @@ pub impl Sub for Complex
 
 type Construction derive(Eq, @debug.Debug)
 
+pub struct DiagramCoordinate {
+  x : Double
+  y : Double
+} derive(Eq, @debug.Debug)
+
 pub struct DiagramPoint {
   x : Double
   y : Double
@@ -93,6 +152,38 @@ pub struct OperatingPoint {
   torque : Double
   efficiency : Double
 } derive(Eq, @debug.Debug)
+
+pub struct OperatingReadout {
+  output_power : Double
+  params : CircuitParams
+  o : DiagramCoordinate
+  n_prime : DiagramCoordinate
+  s_prime : DiagramCoordinate
+  n : DiagramCoordinate
+  s : DiagramCoordinate
+  u : DiagramCoordinate
+  c : DiagramCoordinate
+  t : DiagramCoordinate
+  d : DiagramCoordinate
+  f : DiagramCoordinate
+  g : DiagramCoordinate
+  h : DiagramCoordinate
+  pm : DiagramCoordinate
+  qm : DiagramCoordinate
+  pt : DiagramCoordinate
+  qt : DiagramCoordinate
+  p : DiagramCoordinate
+  p_prime : DiagramCoordinate
+  a : DiagramCoordinate
+  b : DiagramCoordinate
+  l : DiagramCoordinate
+  m : DiagramCoordinate
+  y : DiagramCoordinate
+  r : DiagramCoordinate
+} derive(Eq, @debug.Debug)
+pub fn OperatingReadout::characteristic_line_lengths(Self) -> CharacteristicLineLengths
+pub fn OperatingReadout::characteristics(Self) -> CircleDiagramCharacteristics raise CircleDiagramError
+pub fn OperatingReadout::distance(Self, from~ : CircleDiagramNode, to~ : CircleDiagramNode) -> Double
 
 pub struct PlotBounds {
   min_x : Double

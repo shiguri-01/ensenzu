@@ -21,13 +21,21 @@ fn perpendicular(
 ///|
 test "construction invariants" {
   let diagram = make_circle_diagram(sample_params())
-  let k = make_construction(diagram)
+  let k = make_sample_readout_construction(diagram)
   assert_true(k.d.x > k.o.x)
   assert_true(close_to(k.c.y, k.n.y))
   assert_true(close_to(k.c.distance(k.n), k.radius))
   assert_true(close_to(k.c.distance(k.s), k.radius))
   assert_true(close_to(k.c.distance(k.p), k.radius))
   assert_true(collinear(k.n, k.s, k.d))
+  assert_true(
+    collinear(
+      k.h,
+      k.p,
+      PlotPoint(x=k.h.x + k.s.x - k.n.x, y=k.h.y + k.s.y - k.n.y),
+    ),
+  )
+  assert_true(close_to(k.d.distance(k.h), k.p.distance(k.a)))
   assert_true(collinear(k.n, k.s, k.qm))
   assert_true(perpendicular(k.n, k.s, k.c, k.qm))
   assert_true(collinear(k.n, k.t, k.qt))

@@ -11,6 +11,11 @@ test "complex arithmetic" {
 }
 
 ///|
+fn almost_equal(a : Double, b : Double) -> Bool {
+  (a - b).abs() <= (a.abs() + b.abs() + 1.0) * 1.0e-10
+}
+
+///|
 test "operating points are finite and plausible" {
   let params = sample_params()
   let no_load = operating_point(params, slip=0.01)
@@ -28,6 +33,37 @@ test "diagram samples and svg output" {
   let svg = render_svg(diagram, size={ width: 480.0, height: 320.0 })
   assert_true(svg.contains("<svg"))
   assert_true(svg.contains("output line"))
+}
+
+///|
+test "diagram lengths and characteristics are available" {
+  let params = sample_params()
+  let diagram = make_circle_diagram(params, samples=32)
+  let output_power = operating_point(params, slip=0.05).output_power
+  let readout = read_at_output_power(diagram, output_power~)
+  let lengths = readout.characteristic_line_lengths()
+  let characteristics = readout.characteristics()
+  assert_true(characteristics.input_current > 0.0)
+  assert_true(characteristics.input_power > 0.0)
+  assert_true(characteristics.output_power > 0.0)
+  assert_true(characteristics.torque > 0.0)
+  assert_true(characteristics.efficiency > 0.0)
+  assert_true(lengths.o_p > 0.0)
+  assert_true(lengths.p_m > 0.0)
+  assert_true(lengths.p_a > 0.0)
+  assert_true(lengths.p_b > 0.0)
+  assert_true(lengths.a_b > 0.0)
+  assert_true(lengths.f_y > 0.0)
+  assert_true(lengths.f_s > 0.0)
+  assert_true(lengths.g_r > 0.0)
+  assert_true(lengths.g_s > 0.0)
+  assert_true(almost_equal(characteristics.output_power, output_power))
+  assert_true(
+    almost_equal(characteristics.efficiency, lengths.f_y / lengths.f_s),
+  )
+  assert_true(almost_equal(characteristics.slip, lengths.g_r / lengths.g_s))
+  assert_true(almost_equal(readout.distance(from=D, to=H), lengths.p_a))
+  assert_eq(readout.distance(from=P, to=A), lengths.p_a)
 }
 
 ///|

@@ -17,6 +17,7 @@ struct Construction {
   d : PlotPoint
   f : PlotPoint
   g : PlotPoint
+  h : PlotPoint
   pm : PlotPoint
   qm : PlotPoint
   pt : PlotPoint
@@ -46,9 +47,24 @@ const CONSTRUCTION_BOUNDS_Y_PADDING_RATIO : Double = 0.12
 const CONSTRUCTION_BOUNDS_MIN_PADDING : Double = 1.0
 
 ///|
-fn make_construction(
+fn make_sample_readout_construction(
   diagram : CircleDiagram,
 ) -> Construction raise CircleDiagramError {
+  let representative = operating_point(
+    diagram.params,
+    slip=REPRESENTATIVE_OPERATING_SLIP,
+  )
+  make_readout_construction(diagram, output_power=representative.output_power)
+}
+
+///|
+fn make_readout_construction(
+  diagram : CircleDiagram,
+  output_power~ : Double,
+) -> Construction raise CircleDiagramError {
+  guard output_power >= 0.0 else {
+    raise InvalidInput("output_power must not be negative")
+  }
   let o = PlotPoint(x=0.0, y=0.0)
   let n_prime = PlotPoint(x=0.0, y=diagram.no_load.y)
   let s_prime = PlotPoint(x=0.0, y=diagram.locked_rotor.y)
@@ -64,6 +80,11 @@ fn make_construction(
   let t = PlotPoint(x=u.x, y=u.y + (s.y - u.y) * ratio)
   let d = line_x_axis_intersection(line_start=n, line_end=s)
   let f = PlotPoint(x=d.x, y=s.y)
+  let h = PlotPoint(
+    x=d.x,
+    y=output_power /
+      (diagram.params.phases.to_double() * diagram.params.phase_voltage),
+  )
   let g = vertical_intersection_with_parallel(
     x=n.x,
     parallel_to_start=n,
@@ -74,11 +95,13 @@ fn make_construction(
   let pm = radial_circle_point(center=c, through=qm, radius~)
   let qt = perpendicular_foot_on_line(point=c, line_start=n, line_end=t)
   let pt = radial_circle_point(center=c, through=qt, radius~)
-  let p_seed = nearest_slip_plot_point(
-    diagram.points,
-    REPRESENTATIVE_OPERATING_SLIP,
+  let p = circle_intersection_with_parallel(
+    center=c,
+    radius~,
+    through=h,
+    parallel_to_start=n,
+    parallel_to_end=s,
   )
-  let p = circle_point_at_x(x=p_seed.x, center=c, radius~, branch_point=s)
   let p_prime = PlotPoint(x=0.0, y=p.y)
   let a = vertical_line_intersection(x=p.x, line_start=n, line_end=s)
   let b = vertical_line_intersection(x=p.x, line_start=n, line_end=t)
@@ -98,8 +121,8 @@ fn make_construction(
   )
   let bounds = PlotBounds::covering_l_type_construction(
     [
-      o, n_prime, s_prime, n, s, u, c, t, d, f, g, qm, pm, qt, pt, p, p_prime, a,
-      b, l, m, y, r,
+      o, n_prime, s_prime, n, s, u, c, t, d, f, g, h, qm, pm, qt, pt, p, p_prime,
+      a, b, l, m, y, r,
     ],
     center=c,
     radius~,
@@ -117,6 +140,7 @@ fn make_construction(
     d,
     f,
     g,
+    h,
     pm,
     qm,
     pt,
@@ -146,21 +170,6 @@ fn PlotPoint::circle_branch(center : Self, on_circle : Self) -> Double {
   } else {
     -1.0
   }
-}
-
-///|
-fn circle_point_at_x(
-  x~ : Double,
-  center~ : PlotPoint,
-  radius~ : Double,
-  branch_point~ : PlotPoint,
-) -> PlotPoint raise CircleDiagramError {
-  let dx = x - center.x
-  guard dx.abs() <= radius else {
-    raise GeometryError("x is outside the circle")
-  }
-  let dy = checked_sqrt(radius * radius - (x - center.x) * (x - center.x))
-  PlotPoint(x~, y=center.y + center.circle_branch(branch_point) * dy)
 }
 
 ///|
@@ -264,6 +273,40 @@ fn radial_circle_point(
 }
 
 ///|
+fn circle_intersection_with_parallel(
+  center~ : PlotPoint,
+  radius~ : Double,
+  through~ : PlotPoint,
+  parallel_to_start~ : PlotPoint,
+  parallel_to_end~ : PlotPoint,
+) -> PlotPoint raise CircleDiagramError {
+  let dx = parallel_to_end.x - parallel_to_start.x
+  let dy = parallel_to_end.y - parallel_to_start.y
+  let a = dx * dx + dy * dy
+  guard a > NUMERIC_TOLERANCE else {
+    raise GeometryError("parallel reference line must have positive length")
+  }
+  let fx = through.x - center.x
+  let fy = through.y - center.y
+  let b = 2.0 * (fx * dx + fy * dy)
+  let c = fx * fx + fy * fy - radius * radius
+  let discriminant = b * b - 4.0 * a * c
+  guard discriminant >= -NUMERIC_TOLERANCE else {
+    raise GeometryError("output line does not intersect the circle")
+  }
+  let root = checked_sqrt(discriminant)
+  let t1 = (-b - root) / (2.0 * a)
+  let t2 = (-b + root) / (2.0 * a)
+  let p1 = PlotPoint(x=through.x + dx * t1, y=through.y + dy * t1)
+  let p2 = PlotPoint(x=through.x + dx * t2, y=through.y + dy * t2)
+  if p1.x <= p2.x {
+    p1
+  } else {
+    p2
+  }
+}
+
+///|
 fn line_intersection(
   first_start~ : PlotPoint,
   first_end~ : PlotPoint,
@@ -284,23 +327,6 @@ fn line_intersection(
     ) /
     denom
   PlotPoint(x=first_start.x + r_x * t, y=first_start.y + r_y * t)
-}
-
-///|
-fn nearest_slip_plot_point(
-  points : Array[DiagramPoint],
-  slip : Double,
-) -> PlotPoint {
-  let mut best = points[0]
-  let mut best_error = (best.point.slip - slip).abs()
-  for p in points {
-    let error = (p.point.slip - slip).abs()
-    if error < best_error {
-      best = p
-      best_error = error
-    }
-  }
-  PlotPoint(x=best.x, y=best.y)
 }
 
 ///|

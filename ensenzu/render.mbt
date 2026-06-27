@@ -126,7 +126,7 @@ pub fn render_svg(
   size? : DiagramSize = default_size(),
 ) -> String raise CircleDiagramError {
   validate_render_size(size)
-  let construction = make_construction(diagram)
+  let construction = make_sample_readout_construction(diagram)
   let vp = Viewport(size, construction.bounds)
   let doc = @svg.new_svg(size.width, size.height).render_rectangle(
     0.0,
@@ -249,6 +249,7 @@ fn render_construction_lines(
   )
   .render_plot_line(vp, start=k.f, end=k.s, weight=Emphasis)
   .render_plot_line(vp, start=k.s, end=k.g, weight=Emphasis)
+  .render_plot_line(vp, start=k.h, end=k.p, weight=Normal)
   .render_plot_line(vp, start=k.c, end=k.pm, weight=Normal)
   .render_plot_line(vp, start=k.c, end=k.pt, weight=Normal)
   .render_plot_line(vp, start=k.p, end=k.p_prime, weight=Normal)
@@ -327,6 +328,7 @@ fn render_point_labels(
   .render_label(vp, point=k.d, text="D", anchor=LeftDown)
   .render_label(vp, point=k.f, text="F", anchor=LeftUp)
   .render_label(vp, point=k.g, text="G", anchor=RightUp)
+  .render_label(vp, point=k.h, text="H", anchor=LeftUp)
   .render_label(vp, point=k.pm, text="Pm", anchor=RightUp)
   .render_label(vp, point=k.qm, text="Qm", anchor=RightDown)
   .render_label(vp, point=k.pt, text="PT", anchor=RightUp)
