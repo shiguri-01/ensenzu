@@ -30,15 +30,6 @@ const DEFAULT_POINT_COUNT : Int = 96
 const DEFAULT_MIN_SLIP : Double = 0.01
 
 ///|
-const DIAGRAM_BOUNDS_X_PADDING_RATIO : Double = 0.12
-
-///|
-const DIAGRAM_BOUNDS_Y_PADDING_RATIO : Double = 0.18
-
-///|
-const DIAGRAM_BOUNDS_MIN_PADDING : Double = 1.0
-
-///|
 pub fn make_circle_diagram(
   params : CircuitParams,
   point_count? : Int = DEFAULT_POINT_COUNT,
@@ -117,20 +108,6 @@ fn PlotBounds::include_point(bounds : Self, p : DiagramPoint) -> Self {
 }
 
 ///|
-fn PlotBounds::padded(bounds : Self) -> Self {
-  let x_pad = (bounds.max_x - bounds.min_x) * DIAGRAM_BOUNDS_X_PADDING_RATIO +
-    DIAGRAM_BOUNDS_MIN_PADDING
-  let y_pad = (bounds.max_y - bounds.min_y) * DIAGRAM_BOUNDS_Y_PADDING_RATIO +
-    DIAGRAM_BOUNDS_MIN_PADDING
-  {
-    min_x: bounds.min_x - x_pad,
-    max_x: bounds.max_x + x_pad,
-    min_y: bounds.min_y - y_pad,
-    max_y: bounds.max_y + y_pad,
-  }
-}
-
-///|
 fn PlotBounds::covering_diagram_points(
   points : Array[DiagramPoint],
   landmark_points : Array[DiagramPoint],
@@ -142,5 +119,5 @@ fn PlotBounds::covering_diagram_points(
   for p in landmark_points {
     bounds = bounds.include_point(p)
   }
-  bounds.padded()
+  bounds
 }

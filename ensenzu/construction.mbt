@@ -35,24 +35,18 @@ struct Construction {
 } derive(Debug, Eq)
 
 ///|
-const REPRESENTATIVE_OPERATING_SLIP : Double = 0.05
+const DEFAULT_RENDER_READOUT_SLIP : Double = 0.05
 
 ///|
-const CONSTRUCTION_BOUNDS_X_PADDING_RATIO : Double = 0.10
+const AUXILIARY_VERTICAL_EXTENSION_RATIO : Double = 0.18
 
 ///|
-const CONSTRUCTION_BOUNDS_Y_PADDING_RATIO : Double = 0.12
-
-///|
-const CONSTRUCTION_BOUNDS_MIN_PADDING : Double = 1.0
-
-///|
-fn make_sample_readout_construction(
+fn make_default_render_construction(
   diagram : CircleDiagram,
 ) -> Construction raise CircleDiagramError {
   let representative = operating_point(
     diagram.params,
-    slip=REPRESENTATIVE_OPERATING_SLIP,
+    slip=DEFAULT_RENDER_READOUT_SLIP,
   )
   make_readout_construction(diagram, output_power=representative.output_power)
 }
@@ -119,10 +113,18 @@ fn make_readout_construction(
     second_start=g,
     second_end=s,
   )
+  let f_extension = PlotPoint(
+    x=d.x,
+    y=f.y + (f.y - d.y) * AUXILIARY_VERTICAL_EXTENSION_RATIO,
+  )
+  let g_extension = PlotPoint(
+    x=n.x,
+    y=g.y + (g.y - n.y) * AUXILIARY_VERTICAL_EXTENSION_RATIO,
+  )
   let bounds = PlotBounds::covering_l_type_construction(
     [
       o, n_prime, s_prime, n, s, u, c, t, d, f, g, h, qm, pm, qt, pt, p, p_prime,
-      a, b, l, m, y, r,
+      a, b, l, m, y, r, f_extension, g_extension,
     ],
     center=c,
     radius~,
@@ -354,14 +356,5 @@ fn PlotBounds::covering_l_type_construction(
       max_y = p.y
     }
   }
-  let x_pad = (max_x - min_x) * CONSTRUCTION_BOUNDS_X_PADDING_RATIO +
-    CONSTRUCTION_BOUNDS_MIN_PADDING
-  let y_pad = (max_y - min_y) * CONSTRUCTION_BOUNDS_Y_PADDING_RATIO +
-    CONSTRUCTION_BOUNDS_MIN_PADDING
-  {
-    min_x: min_x - x_pad,
-    max_x: max_x + x_pad,
-    min_y: min_y - y_pad,
-    max_y: max_y + y_pad,
-  }
+  { min_x, max_x, min_y, max_y }
 }

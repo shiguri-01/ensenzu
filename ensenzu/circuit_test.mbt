@@ -111,7 +111,7 @@ test "invalid slip above locked rotor returns an error" {
 ///|
 test "invalid render size returns an error" {
   let diagram = make_circle_diagram(example_params(), point_count=16)
-  try ignore(render_svg(diagram, size={ width: 80.0, height: 120.0 })) catch {
+  try ignore(render_svg(diagram, size={ width: 30.0, height: 30.0 })) catch {
     InvalidInput(_) => ()
     _ => fail("expected InvalidInput")
   } noraise {

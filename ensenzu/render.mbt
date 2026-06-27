@@ -44,22 +44,10 @@ const LABEL_OFFSET_Y_UP : Double = -7.0
 const LABEL_OFFSET_Y_DOWN : Double = 9.0
 
 ///|
-const VIEWPORT_MARGIN_LEFT : Double = 56.0
-
-///|
-const VIEWPORT_MARGIN_RIGHT : Double = 42.0
-
-///|
-const VIEWPORT_MARGIN_TOP : Double = 48.0
-
-///|
-const VIEWPORT_MARGIN_BOTTOM : Double = 56.0
+const VIEWPORT_LABEL_MARGIN : Double = 24.0
 
 ///|
 const CIRCLE_ARC_SAMPLES : Int = 96
-
-///|
-const AUXILIARY_VERTICAL_EXTENSION_RATIO : Double = 0.18
 
 ///|
 fn StrokeWeight::width(self : Self) -> Double {
@@ -86,10 +74,10 @@ fn Viewport::plot_width(self : Self) -> Double {
 
 ///|
 fn Viewport::Viewport(size : DiagramSize, bounds : PlotBounds) -> Self {
-  let margin_left = VIEWPORT_MARGIN_LEFT
-  let margin_right = VIEWPORT_MARGIN_RIGHT
-  let margin_top = VIEWPORT_MARGIN_TOP
-  let margin_bottom = VIEWPORT_MARGIN_BOTTOM
+  let margin_left = VIEWPORT_LABEL_MARGIN
+  let margin_right = VIEWPORT_LABEL_MARGIN
+  let margin_top = VIEWPORT_LABEL_MARGIN
+  let margin_bottom = VIEWPORT_LABEL_MARGIN
   {
     size,
     margin_left,
@@ -126,7 +114,7 @@ pub fn render_svg(
   size? : DiagramSize = default_size(),
 ) -> String raise CircleDiagramError {
   validate_render_size(size)
-  let construction = make_sample_readout_construction(diagram)
+  let construction = make_default_render_construction(diagram)
   let vp = Viewport(size, construction.bounds)
   let doc = @svg.new_svg(size.width, size.height).render_rectangle(
     0.0,
@@ -135,7 +123,7 @@ pub fn render_svg(
     size.height,
     @color.white(),
   )
-  let doc = render_axes(doc, vp)
+  let doc = render_axes(doc, vp, construction.bounds)
   let doc = render_construction_lines(doc, vp, construction)
   let doc = render_circle_arc(doc, vp, construction)
   let doc = render_point_labels(doc, vp, construction)
@@ -144,10 +132,10 @@ pub fn render_svg(
 
 ///|
 fn validate_render_size(size : DiagramSize) -> Unit raise CircleDiagramError {
-  guard size.width > VIEWPORT_MARGIN_LEFT + VIEWPORT_MARGIN_RIGHT else {
+  guard size.width > VIEWPORT_LABEL_MARGIN * 2.0 else {
     raise InvalidInput("diagram width is too small for the viewport margins")
   }
-  guard size.height > VIEWPORT_MARGIN_TOP + VIEWPORT_MARGIN_BOTTOM else {
+  guard size.height > VIEWPORT_LABEL_MARGIN * 2.0 else {
     raise InvalidInput("diagram height is too small for the viewport margins")
   }
 }
@@ -189,20 +177,32 @@ fn fitted_bounds(
 }
 
 ///|
-fn render_axes(doc : @svg.SvgDocument, vp : Viewport) -> @svg.SvgDocument {
+fn render_axes(
+  doc : @svg.SvgDocument,
+  vp : Viewport,
+  drawing_bounds : PlotBounds,
+) -> @svg.SvgDocument {
   let black = @color.black()
-  let x0 = clamp(value=0.0, lower=vp.bounds.min_x, upper=vp.bounds.max_x)
-  let y0 = clamp(value=0.0, lower=vp.bounds.min_y, upper=vp.bounds.max_y)
+  let x0 = clamp(
+    value=0.0,
+    lower=drawing_bounds.min_x,
+    upper=drawing_bounds.max_x,
+  )
+  let y0 = clamp(
+    value=0.0,
+    lower=drawing_bounds.min_y,
+    upper=drawing_bounds.max_y,
+  )
   doc
   .render_line(
-    vp.to_screen(PlotPoint(x=x0, y=vp.bounds.min_y)),
-    vp.to_screen(PlotPoint(x=x0, y=vp.bounds.max_y)),
+    vp.to_screen(PlotPoint(x=x0, y=drawing_bounds.min_y)),
+    vp.to_screen(PlotPoint(x=x0, y=drawing_bounds.max_y)),
     black,
     Normal.width(),
   )
   .render_line(
-    vp.to_screen(PlotPoint(x=vp.bounds.min_x, y=y0)),
-    vp.to_screen(PlotPoint(x=vp.bounds.max_x, y=y0)),
+    vp.to_screen(PlotPoint(x=drawing_bounds.min_x, y=y0)),
+    vp.to_screen(PlotPoint(x=drawing_bounds.max_x, y=y0)),
     black,
     Normal.width(),
   )
@@ -224,7 +224,7 @@ fn render_construction_lines(
   .render_plot_line(
     vp,
     start=k.n,
-    end=PlotPoint(x=vp.bounds.max_x, y=k.n.y),
+    end=PlotPoint(x=k.bounds.max_x, y=k.n.y),
     weight=Normal,
   )
   .render_plot_line(vp, start=k.n, end=k.t, weight=Emphasis)
@@ -289,8 +289,8 @@ fn render_circle_arc(
   let mut d = ""
   for i in 0..<=samples {
     let t = i.to_double() / samples.to_double()
-    let end_x = if vp.bounds.max_x < k.c.x + k.radius {
-      vp.bounds.max_x
+    let end_x = if k.bounds.max_x < k.c.x + k.radius {
+      k.bounds.max_x
     } else {
       k.c.x + k.radius
     }
