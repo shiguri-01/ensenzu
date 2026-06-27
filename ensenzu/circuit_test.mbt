@@ -59,11 +59,34 @@ test "diagram lengths and characteristics are available" {
   assert_true(lengths.g_s > 0.0)
   assert_true(almost_equal(characteristics.output_power, output_power))
   assert_true(
-    almost_equal(characteristics.efficiency, lengths.f_y / lengths.f_s),
+    almost_equal(
+      characteristics.efficiency,
+      output_power / characteristics.input_power,
+    ),
   )
   assert_true(almost_equal(characteristics.slip, lengths.g_r / lengths.g_s))
   assert_true(almost_equal(readout.distance(from=D, to=H), lengths.p_a))
   assert_eq(readout.distance(from=P, to=A), lengths.p_a)
+}
+
+///|
+test "circle diagram readout matches equivalent circuit calculation" {
+  let params = example_params()
+  let diagram = make_circle_diagram(params, point_count=32)
+  let expected = operating_point(params, slip=0.05)
+  let readout = read_at_output_power(
+    diagram,
+    output_power=expected.output_power,
+  )
+  let actual = readout.characteristics()
+  assert_true(almost_equal(actual.slip, expected.slip))
+  assert_true(almost_equal(actual.input_current, expected.input_current.abs()))
+  assert_true(almost_equal(actual.power_factor, expected.power_factor))
+  assert_true(almost_equal(actual.input_power, expected.input_power))
+  assert_true(almost_equal(actual.air_gap_power, expected.air_gap_power))
+  assert_true(almost_equal(actual.output_power, expected.output_power))
+  assert_true(almost_equal(actual.torque, expected.torque))
+  assert_true(almost_equal(actual.efficiency, expected.efficiency))
 }
 
 ///|

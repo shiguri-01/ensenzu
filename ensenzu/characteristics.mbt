@@ -144,13 +144,13 @@ pub fn OperatingReadout::characteristics(
   {
     slip: lengths.g_r / lengths.g_s,
     input_current: lengths.o_p,
-    active_current_component: lengths.o_m,
-    power_factor: lengths.o_m / lengths.o_p,
+    active_current_component: lengths.p_m,
+    power_factor: lengths.p_m / lengths.o_p,
     input_power,
     air_gap_power,
     output_power,
     torque: air_gap_power / synchronous_speed_rad_per_sec(self.params),
-    efficiency: lengths.f_y / lengths.f_s,
+    efficiency: output_power / input_power,
   }
 }
 

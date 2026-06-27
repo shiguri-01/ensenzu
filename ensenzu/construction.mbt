@@ -60,9 +60,9 @@ fn make_readout_construction(
     raise InvalidInput("output_power must not be negative")
   }
   let o = PlotPoint(x=0.0, y=0.0)
-  let n_prime = PlotPoint(x=0.0, y=diagram.no_load.y)
+  let n = ideal_no_load_point(diagram.params)
+  let n_prime = PlotPoint(x=0.0, y=n.y)
   let s_prime = PlotPoint(x=0.0, y=diagram.locked_rotor.y)
-  let n = PlotPoint(x=diagram.no_load.x, y=diagram.no_load.y)
   let s = PlotPoint(x=diagram.locked_rotor.x, y=diagram.locked_rotor.y)
   let u = PlotPoint(x=s.x, y=n.y)
   let c = circle_center_on_nu(n~, s~)
@@ -158,6 +158,17 @@ fn make_readout_construction(
     radius,
     bounds,
   }
+}
+
+///|
+fn ideal_no_load_point(
+  params : CircuitParams,
+) -> PlotPoint raise CircleDiagramError {
+  params.validate()
+  PlotPoint(
+    x=params.phase_voltage / params.xm,
+    y=params.phase_voltage / params.core_loss_resistance,
+  )
 }
 
 ///|

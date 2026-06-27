@@ -73,7 +73,7 @@ pub fn make_circle_diagram(
 
 ///|
 fn DiagramPoint::from_operating_point(point : OperatingPoint) -> Self {
-  { x: point.input_current.re, y: -point.input_current.im, point }
+  { x: -point.input_current.im, y: point.input_current.re, point }
 }
 
 ///|

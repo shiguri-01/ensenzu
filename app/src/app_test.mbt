@@ -43,7 +43,7 @@ test "characteristics are computed when output_power is valid" {
   assert_true(c.efficiency > 0.0 && c.efficiency < 1.0)
   assert_true(c.power_factor > 0.0 && c.power_factor <= 1.0)
   assert_eq(c.input_current, lengths.o_p)
-  assert_eq(c.active_current_component, lengths.o_m)
+  assert_eq(c.active_current_component, lengths.p_m)
 }
 
 ///|
