@@ -57,6 +57,10 @@ jobs:
         working-directory: app
         run: pnpm run build
 
+      - name: Validate Worker bundle
+        working-directory: app
+        run: pnpm exec wrangler deploy --dry-run
+
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:

@@ -1,9 +1,17 @@
-import { render_api_response_json } from "../_build/js/debug/build/shiguri-01/app/app.js";
-
 const jsonHeaders = {
   "Content-Type": "application/json; charset=utf-8",
   "Cache-Control": "no-store",
 };
+
+let renderApiResponseJson;
+
+async function renderDiagramResponse(requestBody) {
+  if (!renderApiResponseJson) {
+    const api = await import("../_build/js/debug/build/shiguri-01/app/app.js");
+    renderApiResponseJson = api.render_api_response_json;
+  }
+  return renderApiResponseJson(requestBody);
+}
 
 export default {
   async fetch(request, env) {
@@ -20,7 +28,7 @@ export default {
         );
       }
 
-      return new Response(render_api_response_json(await request.text()), {
+      return new Response(await renderDiagramResponse(await request.text()), {
         headers: jsonHeaders,
       });
     }

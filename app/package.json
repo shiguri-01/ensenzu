@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "moon build --target js && vite",
-    "build": "moon build --target js && vite build",
+    "build": "moon build --target js && vite build && node scripts/patch-worker-runtime.mjs",
     "preview": "vite preview",
     "deploy": "pnpm run build && pnpm exec wrangler deploy"
   },
