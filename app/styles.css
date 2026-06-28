@@ -58,8 +58,9 @@ p {
 
 .settings {
     display: grid;
-    grid-template-rows: var(--bar-h) auto minmax(0, 1fr);
+    grid-template-rows: var(--bar-h) minmax(0, 1fr);
     min-height: 0;
+    position: relative;
     background: var(--surface);
 }
 
@@ -194,14 +195,20 @@ button:disabled {
 
 /* ── Validation ──────────────────────────────────────── */
 
-.validation {
-    margin: 10px 14px 0;
+.validation-popover {
+    position: absolute;
+    top: calc(var(--bar-h) + 8px);
+    left: 14px;
+    right: 14px;
+    z-index: 5;
     padding: 8px 11px;
     color: var(--warning-ink);
-    border-left: 3px solid var(--warning-ink);
-    background: var(--warning-bg);
+    border: 1px solid #e7c7c1;
+    border-radius: 4px;
+    background: #fff9f7;
+    box-shadow: 0 6px 16px rgba(80, 42, 34, 0.1);
     font-size: 14px;
-    line-height: 1.55;
+    line-height: 1.45;
 }
 
 /* ── Form ────────────────────────────────────────────── */
@@ -316,6 +323,15 @@ input {
 input:focus {
     outline: 2px solid rgba(23, 32, 31, 0.18);
     border-color: var(--ink);
+}
+
+input:user-invalid {
+    border-color: var(--warning-ink);
+    background: var(--warning-bg);
+}
+
+input:user-invalid:focus {
+    outline-color: rgba(122, 32, 32, 0.18);
 }
 
 .input-unit {

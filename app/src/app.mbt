@@ -82,6 +82,7 @@ pub(all) struct Model {
   characteristics : @ensenzu.CircleDiagramCharacteristics?
   line_lengths : @ensenzu.CharacteristicLineLengths?
   error : String?
+  pending_input : Bool
   show_advanced : Bool
   confirm_reset : Bool
 } derive(Debug, Eq)
@@ -213,6 +214,54 @@ fn parse_int(label : String, value : String) -> Int raise AppInputError {
     _ => raise InvalidField(label, "整数を入力してください")
   } noraise {
     x => x
+  }
+}
+
+///|
+fn is_blank_or_partial_number(value : String) -> Bool {
+  value == "" ||
+  value == "." ||
+  value == "0." ||
+  value == "+." ||
+  value == "+0."
+}
+
+///|
+fn FieldKey::has_positive_decimal_constraint(self : Self) -> Bool {
+  match self {
+    PhaseVoltage
+    | Frequency
+    | R2
+    | Xm
+    | CoreLossResistance
+    | NoLoadInputPower
+    | NoLoadCurrent
+    | LockedRotorVoltage
+    | LockedRotorInputPower
+    | LockedRotorCurrent
+    | Width
+    | Height
+    | OutputPower => true
+    _ => false
+  }
+}
+
+///|
+fn FieldKey::has_positive_integer_constraint(self : Self) -> Bool {
+  match self {
+    Poles | Phases => true
+    _ => false
+  }
+}
+
+///|
+fn FieldKey::is_pending_value(self : Self, value : String) -> Bool {
+  if self.has_positive_decimal_constraint() {
+    is_blank_or_partial_number(value) || value == "0" || value == "+0"
+  } else if self.has_positive_integer_constraint() {
+    value == "" || value == "+"
+  } else {
+    is_blank_or_partial_number(value)
   }
 }
 
@@ -434,13 +483,30 @@ pub fn model_from_fields(
   previous_svg? : String = "",
   show_advanced? : Bool = false,
 ) -> Model {
+  model_from_fields_with_state(fields, previous_svg~, show_advanced~)
+}
+
+///|
+fn model_from_fields_with_state(
+  fields : AppFields,
+  previous_svg? : String = "",
+  previous_characteristics? : @ensenzu.CircleDiagramCharacteristics? = None,
+  previous_line_lengths? : @ensenzu.CharacteristicLineLengths? = None,
+  show_advanced? : Bool = false,
+  pending_input? : Bool = false,
+) -> Model {
   let make_error = fn(msg : String) -> Model {
     {
       fields,
       svg: previous_svg,
-      characteristics: None,
-      line_lengths: None,
-      error: Some(msg),
+      characteristics: previous_characteristics,
+      line_lengths: previous_line_lengths,
+      error: if pending_input {
+        None
+      } else {
+        Some(msg)
+      },
+      pending_input,
       show_advanced,
       confirm_reset: false,
     }
@@ -455,6 +521,7 @@ pub fn model_from_fields(
         characteristics: result.characteristics,
         line_lengths: result.line_lengths,
         error: None,
+        pending_input: false,
         show_advanced,
         confirm_reset: false,
       }
@@ -463,7 +530,7 @@ pub fn model_from_fields(
 
 ///|
 pub fn initial_model() -> Model {
-  model_from_fields(default_app_fields(), show_advanced=false)
+  model_from_fields_with_state(default_app_fields(), show_advanced=false)
 }
 
 ///|
@@ -475,21 +542,27 @@ fn update(
   match msg {
     Change(key, value) => {
       let fields = model.fields.set(key, value)
+      let pending_input = key.is_pending_value(value)
       (
         @rabbita.none,
-        model_from_fields(
+        model_from_fields_with_state(
           fields,
           previous_svg=model.svg,
+          previous_characteristics=model.characteristics,
+          previous_line_lengths=model.line_lengths,
           show_advanced=model.show_advanced,
+          pending_input~,
         ),
       )
     }
     ChangeInputSource(source) =>
       (
         @rabbita.none,
-        model_from_fields(
+        model_from_fields_with_state(
           { ..model.fields, input_source: source },
           previous_svg=model.svg,
+          previous_characteristics=model.characteristics,
+          previous_line_lengths=model.line_lengths,
           show_advanced=model.show_advanced,
         ),
       )
@@ -498,13 +571,15 @@ fn update(
     Reset =>
       (
         @rabbita.none,
-        model_from_fields(
+        model_from_fields_with_state(
           default_app_fields(),
           show_advanced=model.show_advanced,
         ),
       )
     Download =>
-      if model.svg.length() == 0 || model.error is Some(_) {
+      if model.svg.length() == 0 ||
+        model.error is Some(_) ||
+        model.pending_input {
         (@rabbita.none, model)
       } else {
         (download_svg_cmd("circle-diagram.svg", model.svg), model)

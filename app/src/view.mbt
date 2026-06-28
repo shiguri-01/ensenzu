@@ -7,7 +7,7 @@ fn view(emit : @rabbita.Emit[Msg], model : Model) -> @rabbita.Html {
         @html.button(
           class="btn-primary",
           type_="button",
-          disabled=model.error is Some(_),
+          disabled=model.error is Some(_) || model.pending_input,
           on_click=emit(Download),
           "SVGをダウンロード",
         ),
@@ -289,7 +289,7 @@ fn error_view(model~ : Model) -> @rabbita.Html {
   match model.error {
     Some(message) =>
       @html.div(
-        class="validation",
+        class="validation-popover",
         attrs=@html.Attrs::build().role("alert").aria_live("polite"),
         [@html.span(message)],
       )
@@ -469,6 +469,7 @@ fn field(
   emit~ : @rabbita.Emit[Msg],
   symbol? : String = "",
 ) -> @rabbita.Html {
+  let constraint = field_constraint(key)
   @html.label(class="input-row", [
     @html.span(class="input-label", [
       @html.span(class="input-name", name),
@@ -479,10 +480,80 @@ fn field(
       },
     ]),
     @html.span(class="input-control", [
-      @html.input(input_type=Number, value~, inputmode="decimal", on_input=text => {
-        emit(Change(key, text))
-      }),
+      number_input(value~, constraint~, key~, emit~),
       @html.span(class="input-unit", unit),
     ]),
   ])
+}
+
+///|
+fn number_input(
+  value~ : String,
+  constraint~ : FieldConstraint,
+  key~ : FieldKey,
+  emit~ : @rabbita.Emit[Msg],
+) -> @rabbita.Html {
+  if constraint is PositiveInteger {
+    @html.input(
+      input_type=Number,
+      value~,
+      inputmode=constraint.inputmode(),
+      min=constraint.min(),
+      step=1,
+      title=constraint.title(),
+      required=true,
+      on_input=text => emit(Change(key, text)),
+    )
+  } else {
+    @html.input(
+      input_type=Number,
+      value~,
+      inputmode=constraint.inputmode(),
+      min=constraint.min(),
+      title=constraint.title(),
+      required=true,
+      on_input=text => emit(Change(key, text)),
+    )
+  }
+}
+
+///|
+priv enum FieldConstraint {
+  PositiveDecimal
+  NonNegativeDecimal
+  PositiveInteger
+}
+
+///|
+fn field_constraint(key : FieldKey) -> FieldConstraint {
+  match key {
+    Poles | Phases => PositiveInteger
+    R1 | X1 | X2 | MechanicalLoss => NonNegativeDecimal
+    _ => PositiveDecimal
+  }
+}
+
+///|
+fn FieldConstraint::inputmode(self : Self) -> String {
+  match self {
+    PositiveInteger => "numeric"
+    PositiveDecimal | NonNegativeDecimal => "decimal"
+  }
+}
+
+///|
+fn FieldConstraint::min(self : Self) -> Int {
+  match self {
+    PositiveInteger => 1
+    PositiveDecimal | NonNegativeDecimal => 0
+  }
+}
+
+///|
+fn FieldConstraint::title(self : Self) -> String {
+  match self {
+    PositiveDecimal => "0より大きい数値を入力してください"
+    NonNegativeDecimal => "0以上の数値を入力してください"
+    PositiveInteger => "1以上の整数を入力してください"
+  }
 }

@@ -112,6 +112,7 @@ pub(all) struct Model {
   characteristics : @ensenzu.CircleDiagramCharacteristics?
   line_lengths : @ensenzu.CharacteristicLineLengths?
   error : String?
+  pending_input : Bool
   show_advanced : Bool
   confirm_reset : Bool
 } derive(Eq, @debug.Debug)
