@@ -9,7 +9,7 @@
     --line: #d9dedb;
     --line-strong: #b9c3bf;
     --warning-bg: #fff5f5;
-    --warning-ink: #7a2020;
+    --warning-ink: #ba3220;
     --sidebar: 360px;
     --readout: 240px;
     --bar-h: 52px;
@@ -74,12 +74,15 @@ p {
     padding: 0 20px;
     border-bottom: 1px solid var(--line);
     background: var(--surface);
+    container-type: size;
 }
 
 .app-name {
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: -0.01em;
+    margin-top: 0.1em;
+    padding-inline: 0.25em;
+    font-size: 80cqh;
+    line-height: 1em;
+    font-weight: 300;
     color: var(--ink);
 }
 
@@ -134,10 +137,7 @@ button {
     cursor: pointer;
     font-size: 13px;
     white-space: nowrap;
-}
-
-button:hover {
-    border-color: var(--ink);
+    transition: all 0.2s ease-in-out;
 }
 
 button:disabled {
@@ -160,16 +160,15 @@ button:disabled {
 }
 
 .btn-secondary {
-    color: var(--muted);
+    color: var(--ink-hover);
     border-color: var(--line-strong);
-    background: var(--paper);
+    background: var(--surface);
     font-size: 13px;
 }
 
-.btn-secondary:hover {
-    color: var(--ink);
-    border-color: var(--line-strong);
-    background: var(--line);
+.btn-secondary:hover:not(:disabled) {
+    border-color: var(--line);
+    background: var(--paper);
 }
 
 .btn-danger {
@@ -233,10 +232,10 @@ legend {
     width: 100%;
     padding-bottom: 5px;
     margin-bottom: 5px;
-    color: var(--muted);
+    color: var(--ink);
     border-bottom: 1px solid var(--line);
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 500;
 }
 
 .source-toggle {
@@ -374,10 +373,10 @@ input:user-invalid:focus {
     padding-bottom: 5px;
     margin-top: 14px;
     margin-bottom: 5px;
-    color: var(--muted);
+    color: var(--ink);
     border-bottom: 1px solid var(--line);
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 500;
 }
 
 .readout-value {
@@ -415,19 +414,19 @@ input:user-invalid:focus {
     justify-content: flex-start;
     width: 100%;
     padding: 6px 0;
-    color: var(--muted);
+    color: var(--ink);
     border: 0;
     border-bottom: 1px solid var(--line);
     border-radius: 0;
     background: transparent;
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 500;
     min-height: unset;
+    transition: all 0.2s ease-in-out;
 }
 
 .advanced-toggle:hover {
-    color: var(--ink);
-    border-color: var(--line-strong);
+    color: var(--ink-hover);
     background: transparent;
 }
 
