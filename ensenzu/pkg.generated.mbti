@@ -8,6 +8,8 @@ import {
 // Values
 pub fn branch_currents(CircuitParams, slip~ : Double) -> BranchCurrents raise CircleDiagramError
 
+pub fn circuit_params_from_tests(NoLoadLockedRotorTestParams) -> CircuitParams raise CircleDiagramError
+
 pub fn default_size() -> DiagramSize
 
 pub fn example_params() -> CircuitParams
@@ -67,6 +69,7 @@ pub struct CircleDiagramCharacteristics {
   secondary_copper_loss : Double
   primary_copper_loss : Double
   core_loss : Double
+  mechanical_loss : Double
   efficiency : Double
 } derive(Eq, @debug.Debug)
 
@@ -108,6 +111,7 @@ pub(all) struct CircuitParams {
   x2 : Double
   xm : Double
   core_loss_resistance : Double
+  mechanical_loss : Double
 } derive(Eq, @debug.Debug)
 
 pub struct Complex {
@@ -142,6 +146,20 @@ pub(all) struct DiagramSize {
 } derive(Eq, @debug.Debug)
 
 type LabelAnchor derive(Eq, @debug.Debug)
+
+pub(all) struct NoLoadLockedRotorTestParams {
+  phase_voltage : Double
+  frequency : Double
+  poles : Int
+  phases : Int
+  primary_resistance : Double
+  no_load_input_power : Double
+  no_load_current : Double
+  mechanical_loss : Double
+  locked_rotor_voltage : Double
+  locked_rotor_input_power : Double
+  locked_rotor_current : Double
+} derive(Eq, @debug.Debug)
 
 pub struct OperatingPoint {
   slip : Double

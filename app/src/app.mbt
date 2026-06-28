@@ -1,5 +1,6 @@
 ///|
 pub(all) struct AppParams {
+  input_source : InputSource
   phase_voltage : Double
   frequency : Double
   poles : Int
@@ -10,6 +11,12 @@ pub(all) struct AppParams {
   x2 : Double
   xm : Double
   core_loss_resistance : Double
+  mechanical_loss : Double
+  no_load_input_power : Double
+  no_load_current : Double
+  locked_rotor_voltage : Double
+  locked_rotor_input_power : Double
+  locked_rotor_current : Double
   width : Double
   height : Double
   output_power : Double
@@ -17,6 +24,7 @@ pub(all) struct AppParams {
 
 ///|
 pub(all) struct AppFields {
+  input_source : InputSource
   phase_voltage : String
   frequency : String
   poles : String
@@ -27,9 +35,21 @@ pub(all) struct AppFields {
   x2 : String
   xm : String
   core_loss_resistance : String
+  mechanical_loss : String
+  no_load_input_power : String
+  no_load_current : String
+  locked_rotor_voltage : String
+  locked_rotor_input_power : String
+  locked_rotor_current : String
   width : String
   height : String
   output_power : String
+} derive(Debug, Eq)
+
+///|
+pub(all) enum InputSource {
+  LTypeEquivalentCircuit
+  NoLoadLockedRotorTest
 } derive(Debug, Eq)
 
 ///|
@@ -44,6 +64,12 @@ pub(all) enum FieldKey {
   X2
   Xm
   CoreLossResistance
+  MechanicalLoss
+  NoLoadInputPower
+  NoLoadCurrent
+  LockedRotorVoltage
+  LockedRotorInputPower
+  LockedRotorCurrent
   Width
   Height
   OutputPower
@@ -63,6 +89,7 @@ pub(all) struct Model {
 ///|
 pub(all) enum Msg {
   Change(FieldKey, String)
+  ChangeInputSource(InputSource)
   RequestReset
   Reset
   CancelReset
@@ -91,6 +118,7 @@ const MAX_SVG_HEIGHT : Double = 1400.0
 pub fn default_app_params() -> AppParams {
   let sample = @ensenzu.example_params()
   {
+    input_source: NoLoadLockedRotorTest,
     phase_voltage: sample.phase_voltage,
     frequency: sample.frequency,
     poles: sample.poles,
@@ -101,6 +129,12 @@ pub fn default_app_params() -> AppParams {
     x2: sample.x2,
     xm: sample.xm,
     core_loss_resistance: sample.core_loss_resistance,
+    mechanical_loss: sample.mechanical_loss,
+    no_load_input_power: 110.0,
+    no_load_current: 3.65,
+    locked_rotor_voltage: 46.19,
+    locked_rotor_input_power: 900.0,
+    locked_rotor_current: 10.0,
     width: 900.0,
     height: 640.0,
     output_power: 1000.0,
@@ -116,6 +150,7 @@ pub fn default_app_fields() -> AppFields {
 ///|
 fn AppFields::from_params(params : AppParams) -> Self {
   {
+    input_source: params.input_source,
     phase_voltage: params.phase_voltage.to_string(),
     frequency: params.frequency.to_string(),
     poles: params.poles.to_string(),
@@ -126,6 +161,12 @@ fn AppFields::from_params(params : AppParams) -> Self {
     x2: params.x2.to_string(),
     xm: params.xm.to_string(),
     core_loss_resistance: params.core_loss_resistance.to_string(),
+    mechanical_loss: params.mechanical_loss.to_string(),
+    no_load_input_power: params.no_load_input_power.to_string(),
+    no_load_current: params.no_load_current.to_string(),
+    locked_rotor_voltage: params.locked_rotor_voltage.to_string(),
+    locked_rotor_input_power: params.locked_rotor_input_power.to_string(),
+    locked_rotor_current: params.locked_rotor_current.to_string(),
     width: params.width.to_string(),
     height: params.height.to_string(),
     output_power: params.output_power.to_string(),
@@ -145,6 +186,12 @@ fn AppFields::set(self : Self, key : FieldKey, value : String) -> Self {
     X2 => { ..self, x2: value }
     Xm => { ..self, xm: value }
     CoreLossResistance => { ..self, core_loss_resistance: value }
+    MechanicalLoss => { ..self, mechanical_loss: value }
+    NoLoadInputPower => { ..self, no_load_input_power: value }
+    NoLoadCurrent => { ..self, no_load_current: value }
+    LockedRotorVoltage => { ..self, locked_rotor_voltage: value }
+    LockedRotorInputPower => { ..self, locked_rotor_input_power: value }
+    LockedRotorCurrent => { ..self, locked_rotor_current: value }
     Width => { ..self, width: value }
     Height => { ..self, height: value }
     OutputPower => { ..self, output_power: value }
@@ -171,23 +218,75 @@ fn parse_int(label : String, value : String) -> Int raise AppInputError {
 
 ///|
 pub fn AppFields::to_params(self : Self) -> AppParams raise AppInputError {
-  let params : AppParams = {
-    phase_voltage: parse_double("相電圧", self.phase_voltage),
-    frequency: parse_double("周波数", self.frequency),
-    poles: parse_int("極数", self.poles),
-    phases: parse_int("相数", self.phases),
-    r1: parse_double("一次抵抗 r1", self.r1),
-    x1: parse_double("一次漏れリアクタンス x1", self.x1),
-    r2: parse_double("二次抵抗 r2", self.r2),
-    x2: parse_double("二次漏れリアクタンス x2", self.x2),
-    xm: parse_double("励磁リアクタンス xm", self.xm),
-    core_loss_resistance: parse_double(
-      "鉄損抵抗",
-      self.core_loss_resistance,
-    ),
-    width: parse_double("SVG幅", self.width),
-    height: parse_double("SVG高さ", self.height),
-    output_power: parse_double("出力電力", self.output_power),
+  let phase_voltage = parse_double("相電圧", self.phase_voltage)
+  let frequency = parse_double("周波数", self.frequency)
+  let poles = parse_int("極数", self.poles)
+  let phases = parse_int("相数", self.phases)
+  let width = parse_double("SVG幅", self.width)
+  let height = parse_double("SVG高さ", self.height)
+  let output_power = parse_double("出力電力", self.output_power)
+  let params : AppParams = match self.input_source {
+    LTypeEquivalentCircuit =>
+      {
+        input_source: self.input_source,
+        phase_voltage,
+        frequency,
+        poles,
+        phases,
+        width,
+        height,
+        output_power,
+        r1: parse_double("一次抵抗 r1", self.r1),
+        x1: parse_double("一次漏れリアクタンス x1", self.x1),
+        r2: parse_double("二次抵抗 r2", self.r2),
+        x2: parse_double("二次漏れリアクタンス x2", self.x2),
+        xm: parse_double("励磁リアクタンス xm", self.xm),
+        core_loss_resistance: parse_double(
+          "鉄損抵抗",
+          self.core_loss_resistance,
+        ),
+        mechanical_loss: parse_double("機械損", self.mechanical_loss),
+        no_load_input_power: 0.0,
+        no_load_current: 0.0,
+        locked_rotor_voltage: 0.0,
+        locked_rotor_input_power: 0.0,
+        locked_rotor_current: 0.0,
+      }
+    NoLoadLockedRotorTest =>
+      {
+        input_source: self.input_source,
+        phase_voltage,
+        frequency,
+        poles,
+        phases,
+        width,
+        height,
+        output_power,
+        r1: parse_double("一次抵抗 r1", self.r1),
+        x1: 0.0,
+        r2: 0.0,
+        x2: 0.0,
+        xm: 0.0,
+        core_loss_resistance: 0.0,
+        mechanical_loss: parse_double("機械損", self.mechanical_loss),
+        no_load_input_power: parse_double(
+          "無負荷入力",
+          self.no_load_input_power,
+        ),
+        no_load_current: parse_double("無負荷電流", self.no_load_current),
+        locked_rotor_voltage: parse_double(
+          "拘束相電圧",
+          self.locked_rotor_voltage,
+        ),
+        locked_rotor_input_power: parse_double(
+          "拘束入力",
+          self.locked_rotor_input_power,
+        ),
+        locked_rotor_current: parse_double(
+          "拘束電流",
+          self.locked_rotor_current,
+        ),
+      }
   }
   params.validate_for_interactive_render()
   params
@@ -209,18 +308,38 @@ fn AppParams::validate_for_interactive_render(
 }
 
 ///|
-fn AppParams::to_circuit_params(self : Self) -> @ensenzu.CircuitParams {
-  {
-    phase_voltage: self.phase_voltage,
-    frequency: self.frequency,
-    poles: self.poles,
-    phases: self.phases,
-    r1: self.r1,
-    x1: self.x1,
-    r2: self.r2,
-    x2: self.x2,
-    xm: self.xm,
-    core_loss_resistance: self.core_loss_resistance,
+fn AppParams::to_circuit_params(
+  self : Self,
+) -> @ensenzu.CircuitParams raise @ensenzu.CircleDiagramError {
+  match self.input_source {
+    LTypeEquivalentCircuit =>
+      {
+        phase_voltage: self.phase_voltage,
+        frequency: self.frequency,
+        poles: self.poles,
+        phases: self.phases,
+        r1: self.r1,
+        x1: self.x1,
+        r2: self.r2,
+        x2: self.x2,
+        xm: self.xm,
+        core_loss_resistance: self.core_loss_resistance,
+        mechanical_loss: self.mechanical_loss,
+      }
+    NoLoadLockedRotorTest =>
+      @ensenzu.circuit_params_from_tests({
+        phase_voltage: self.phase_voltage,
+        frequency: self.frequency,
+        poles: self.poles,
+        phases: self.phases,
+        primary_resistance: self.r1,
+        no_load_input_power: self.no_load_input_power,
+        no_load_current: self.no_load_current,
+        mechanical_loss: self.mechanical_loss,
+        locked_rotor_voltage: self.locked_rotor_voltage,
+        locked_rotor_input_power: self.locked_rotor_input_power,
+        locked_rotor_current: self.locked_rotor_current,
+      })
   }
 }
 
@@ -365,6 +484,15 @@ fn update(
         ),
       )
     }
+    ChangeInputSource(source) =>
+      (
+        @rabbita.none,
+        model_from_fields(
+          { ..model.fields, input_source: source },
+          previous_svg=model.svg,
+          show_advanced=model.show_advanced,
+        ),
+      )
     RequestReset => (@rabbita.none, { ..model, confirm_reset: true })
     CancelReset => (@rabbita.none, { ..model, confirm_reset: false })
     Reset =>

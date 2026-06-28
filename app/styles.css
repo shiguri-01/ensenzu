@@ -232,6 +232,35 @@ legend {
     font-weight: 700;
 }
 
+.source-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin-bottom: 8px;
+    border: 1px solid var(--line-strong);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.source-option {
+    min-height: 34px;
+    padding: 5px 8px;
+    border: 0;
+    border-radius: 0;
+    color: var(--muted);
+    background: var(--surface);
+    font-size: 14px;
+}
+
+.source-option + .source-option {
+    border-left: 1px solid var(--line-strong);
+}
+
+.source-option.is-active {
+    color: #fff;
+    background: var(--ink);
+}
+
 /* ── Input rows ──────────────────────────────────────── */
 
 .input-row {

@@ -120,7 +120,7 @@ test "circle diagram readout matches equivalent circuit calculation" {
   assert_true(
     almost_equal(
       actual.secondary_copper_loss,
-      expected.air_gap_power - expected.output_power,
+      expected.air_gap_power - expected.output_power - params.mechanical_loss,
     ),
   )
   assert_true(
@@ -139,6 +139,69 @@ test "circle diagram readout matches equivalent circuit calculation" {
     ),
   )
   assert_true(almost_equal(actual.efficiency, expected.efficiency))
+}
+
+///|
+test "no-load and locked-rotor tests derive equivalent circuit params" {
+  let tests : NoLoadLockedRotorTestParams = {
+    phase_voltage: 200.0 / 3.0.sqrt(),
+    frequency: 50.0,
+    poles: 4,
+    phases: 3,
+    primary_resistance: 0.7,
+    no_load_input_power: 110.0,
+    no_load_current: 3.65,
+    mechanical_loss: 20.0,
+    locked_rotor_voltage: 80.0 / 3.0.sqrt(),
+    locked_rotor_input_power: 900.0,
+    locked_rotor_current: 10.0,
+  }
+  let params = circuit_params_from_tests(tests)
+  let phases = tests.phases.to_double()
+  let no_load_primary_copper_loss = phases *
+    tests.primary_resistance *
+    tests.no_load_current *
+    tests.no_load_current
+  let core_loss = tests.no_load_input_power -
+    no_load_primary_copper_loss -
+    tests.mechanical_loss
+  let active_current = core_loss / (phases * tests.phase_voltage)
+  let reactive_current = (tests.no_load_current * tests.no_load_current -
+  active_current * active_current).sqrt()
+  let locked_impedance = tests.locked_rotor_voltage / tests.locked_rotor_current
+  let locked_resistance = tests.locked_rotor_input_power /
+    (phases * tests.locked_rotor_current * tests.locked_rotor_current)
+  let leakage_reactance = (locked_impedance * locked_impedance -
+  locked_resistance * locked_resistance).sqrt()
+  assert_true(almost_equal(params.r1, tests.primary_resistance))
+  assert_true(
+    almost_equal(params.r2, locked_resistance - tests.primary_resistance),
+  )
+  assert_true(almost_equal(params.x1, leakage_reactance / 2.0))
+  assert_true(almost_equal(params.x2, leakage_reactance / 2.0))
+  assert_true(almost_equal(params.xm, tests.phase_voltage / reactive_current))
+  assert_true(
+    almost_equal(
+      params.core_loss_resistance,
+      phases * tests.phase_voltage * tests.phase_voltage / core_loss,
+    ),
+  )
+  assert_true(almost_equal(params.mechanical_loss, tests.mechanical_loss))
+}
+
+///|
+test "mechanical loss reduces shaft output power" {
+  let base = example_params()
+  let params : CircuitParams = { ..base, mechanical_loss: 20.0 }
+  let op = operating_point(params, slip=0.05)
+  assert_true(
+    almost_equal(op.output_power, op.air_gap_power * (1.0 - op.slip) - 20.0),
+  )
+  let diagram = make_circle_diagram(params, point_count=32)
+  let readout = read_at_output_power(diagram, output_power=op.output_power)
+  let characteristics = readout.characteristics()
+  assert_true(almost_equal(characteristics.output_power, op.output_power))
+  assert_true(almost_equal(characteristics.mechanical_loss, 20.0))
 }
 
 ///|
@@ -164,6 +227,7 @@ test "invalid circuit parameters return an error" {
     x2: 0.5,
     xm: 500.0,
     core_loss_resistance: 1800.0,
+    mechanical_loss: 0.0,
   }
   try ignore(operating_point(params, slip=0.01)) catch {
     InvalidInput(_) => ()
@@ -213,6 +277,7 @@ test "negative leakage reactance returns an error" {
     x2: 0.5,
     xm: 500.0,
     core_loss_resistance: 1800.0,
+    mechanical_loss: 0.0,
   }
   try ignore(branch_currents(params, slip=0.05)) catch {
     InvalidInput(_) => ()

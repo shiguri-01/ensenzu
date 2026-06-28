@@ -26,6 +26,7 @@ fn view(emit : @rabbita.Emit[Msg], model : Model) -> @rabbita.Html {
       error_view(model~),
       @html.form(on_submit=@rabbita.none, [
         @html.fieldset([
+          input_source_view(model~, emit~),
           field(
             name="相電圧",
             unit="V",
@@ -55,56 +56,7 @@ fn view(emit : @rabbita.Emit[Msg], model : Model) -> @rabbita.Html {
             emit~,
           ),
         ]),
-        fieldset_view(title="等価回路", children=[
-          field(
-            name="一次抵抗",
-            unit="Ω",
-            key=R1,
-            value=model.fields.r1,
-            emit~,
-            symbol="r1",
-          ),
-          field(
-            name="一次漏れリアクタンス",
-            unit="Ω",
-            key=X1,
-            value=model.fields.x1,
-            emit~,
-            symbol="x1",
-          ),
-          field(
-            name="二次抵抗",
-            unit="Ω",
-            key=R2,
-            value=model.fields.r2,
-            emit~,
-            symbol="r2",
-          ),
-          field(
-            name="二次漏れリアクタンス",
-            unit="Ω",
-            key=X2,
-            value=model.fields.x2,
-            emit~,
-            symbol="x2",
-          ),
-          field(
-            name="鉄損抵抗",
-            unit="Ω",
-            key=CoreLossResistance,
-            value=model.fields.core_loss_resistance,
-            emit~,
-            symbol="rc",
-          ),
-          field(
-            name="励磁リアクタンス",
-            unit="Ω",
-            key=Xm,
-            value=model.fields.xm,
-            emit~,
-            symbol="xm",
-          ),
-        ]),
+        source_fields_view(model~, emit~),
         fieldset_view(title="動作点", children=[
           field(
             name="出力電力",
@@ -119,6 +71,180 @@ fn view(emit : @rabbita.Emit[Msg], model : Model) -> @rabbita.Html {
     ]),
     characteristics_panel(model~),
   ])
+}
+
+///|
+fn source_fields_view(
+  model~ : Model,
+  emit~ : @rabbita.Emit[Msg],
+) -> @rabbita.Html {
+  match model.fields.input_source {
+    LTypeEquivalentCircuit => l_type_equivalent_circuit_fields(model~, emit~)
+    NoLoadLockedRotorTest => test_result_fields(model~, emit~)
+  }
+}
+
+///|
+fn l_type_equivalent_circuit_fields(
+  model~ : Model,
+  emit~ : @rabbita.Emit[Msg],
+) -> @rabbita.Html {
+  fieldset_view(title="L型等価回路", children=[
+    field(
+      name="一次抵抗",
+      unit="Ω",
+      key=R1,
+      value=model.fields.r1,
+      emit~,
+      symbol="r1",
+    ),
+    field(
+      name="一次漏れリアクタンス",
+      unit="Ω",
+      key=X1,
+      value=model.fields.x1,
+      emit~,
+      symbol="x1",
+    ),
+    field(
+      name="二次抵抗",
+      unit="Ω",
+      key=R2,
+      value=model.fields.r2,
+      emit~,
+      symbol="r2",
+    ),
+    field(
+      name="二次漏れリアクタンス",
+      unit="Ω",
+      key=X2,
+      value=model.fields.x2,
+      emit~,
+      symbol="x2",
+    ),
+    field(
+      name="鉄損抵抗",
+      unit="Ω",
+      key=CoreLossResistance,
+      value=model.fields.core_loss_resistance,
+      emit~,
+      symbol="rc",
+    ),
+    field(
+      name="励磁リアクタンス",
+      unit="Ω",
+      key=Xm,
+      value=model.fields.xm,
+      emit~,
+      symbol="xm",
+    ),
+    field(
+      name="機械損",
+      unit="W",
+      key=MechanicalLoss,
+      value=model.fields.mechanical_loss,
+      emit~,
+    ),
+  ])
+}
+
+///|
+fn test_result_fields(
+  model~ : Model,
+  emit~ : @rabbita.Emit[Msg],
+) -> @rabbita.Html {
+  fieldset_view(title="無負荷・拘束試験", children=[
+    field(
+      name="一次抵抗",
+      unit="Ω",
+      key=R1,
+      value=model.fields.r1,
+      emit~,
+      symbol="r1",
+    ),
+    field(
+      name="無負荷入力",
+      unit="W",
+      key=NoLoadInputPower,
+      value=model.fields.no_load_input_power,
+      emit~,
+    ),
+    field(
+      name="無負荷電流",
+      unit="A",
+      key=NoLoadCurrent,
+      value=model.fields.no_load_current,
+      emit~,
+    ),
+    field(
+      name="機械損",
+      unit="W",
+      key=MechanicalLoss,
+      value=model.fields.mechanical_loss,
+      emit~,
+    ),
+    field(
+      name="拘束相電圧",
+      unit="V",
+      key=LockedRotorVoltage,
+      value=model.fields.locked_rotor_voltage,
+      emit~,
+    ),
+    field(
+      name="拘束入力",
+      unit="W",
+      key=LockedRotorInputPower,
+      value=model.fields.locked_rotor_input_power,
+      emit~,
+    ),
+    field(
+      name="拘束電流",
+      unit="A",
+      key=LockedRotorCurrent,
+      value=model.fields.locked_rotor_current,
+      emit~,
+    ),
+  ])
+}
+
+///|
+fn input_source_view(
+  model~ : Model,
+  emit~ : @rabbita.Emit[Msg],
+) -> @rabbita.Html {
+  @html.div(class="source-toggle", [
+    source_button(
+      label="無負荷・拘束試験",
+      source=NoLoadLockedRotorTest,
+      current=model.fields.input_source,
+      emit~,
+    ),
+    source_button(
+      label="L型等価回路",
+      source=LTypeEquivalentCircuit,
+      current=model.fields.input_source,
+      emit~,
+    ),
+  ])
+}
+
+///|
+fn source_button(
+  label~ : String,
+  source~ : InputSource,
+  current~ : InputSource,
+  emit~ : @rabbita.Emit[Msg],
+) -> @rabbita.Html {
+  @html.button(
+    class=if source == current {
+      "source-option is-active"
+    } else {
+      "source-option"
+    },
+    type_="button",
+    on_click=emit(ChangeInputSource(source)),
+    label,
+  )
 }
 
 ///|
@@ -255,6 +381,11 @@ fn characteristic_rows(
       unit="W",
     ),
     readout_row(label="鉄損", value=fmt_num(c.core_loss, 1), unit="W"),
+    readout_row(
+      label="機械損",
+      value=fmt_num(c.mechanical_loss, 1),
+      unit="W",
+    ),
     readout_row(
       label="空隙電力",
       value=fmt_num(c.air_gap_power, 1),

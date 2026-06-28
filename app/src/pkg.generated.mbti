@@ -33,6 +33,7 @@ pub(all) suberror AppInputError {
 
 // Types and methods
 pub(all) struct AppFields {
+  input_source : InputSource
   phase_voltage : String
   frequency : String
   poles : String
@@ -43,6 +44,12 @@ pub(all) struct AppFields {
   x2 : String
   xm : String
   core_loss_resistance : String
+  mechanical_loss : String
+  no_load_input_power : String
+  no_load_current : String
+  locked_rotor_voltage : String
+  locked_rotor_input_power : String
+  locked_rotor_current : String
   width : String
   height : String
   output_power : String
@@ -50,6 +57,7 @@ pub(all) struct AppFields {
 pub fn AppFields::to_params(Self) -> AppParams raise AppInputError
 
 pub(all) struct AppParams {
+  input_source : InputSource
   phase_voltage : Double
   frequency : Double
   poles : Int
@@ -60,6 +68,12 @@ pub(all) struct AppParams {
   x2 : Double
   xm : Double
   core_loss_resistance : Double
+  mechanical_loss : Double
+  no_load_input_power : Double
+  no_load_current : Double
+  locked_rotor_voltage : Double
+  locked_rotor_input_power : Double
+  locked_rotor_current : Double
   width : Double
   height : Double
   output_power : Double
@@ -76,9 +90,20 @@ pub(all) enum FieldKey {
   X2
   Xm
   CoreLossResistance
+  MechanicalLoss
+  NoLoadInputPower
+  NoLoadCurrent
+  LockedRotorVoltage
+  LockedRotorInputPower
+  LockedRotorCurrent
   Width
   Height
   OutputPower
+} derive(Eq, @debug.Debug)
+
+pub(all) enum InputSource {
+  LTypeEquivalentCircuit
+  NoLoadLockedRotorTest
 } derive(Eq, @debug.Debug)
 
 pub(all) struct Model {
@@ -93,6 +118,7 @@ pub(all) struct Model {
 
 pub(all) enum Msg {
   Change(FieldKey, String)
+  ChangeInputSource(InputSource)
   RequestReset
   Reset
   CancelReset

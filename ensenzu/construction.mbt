@@ -62,7 +62,7 @@ fn make_readout_construction(
   let f = PlotPoint(x=d.x, y=s.y)
   let h = PlotPoint(
     x=d.x,
-    y=output_power /
+    y=(output_power + diagram.params.mechanical_loss) /
       (diagram.params.phases.to_double() * diagram.params.phase_voltage),
   )
   let g = vertical_intersection_with_parallel(

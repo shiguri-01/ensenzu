@@ -89,6 +89,7 @@ pub struct CircleDiagramCharacteristics {
   secondary_copper_loss : Double
   primary_copper_loss : Double
   core_loss : Double
+  mechanical_loss : Double
   efficiency : Double
 } derive(Debug, Eq)
 
@@ -143,7 +144,8 @@ pub fn OperatingReadout::characteristics(
     self.params.phase_voltage *
     lengths.p_m
   let air_gap_power = input_power * lengths.p_b / lengths.p_m
-  let output_power = input_power * lengths.p_a / lengths.p_m
+  let output_power = input_power * lengths.p_a / lengths.p_m -
+    self.params.mechanical_loss
   let secondary_copper_loss = input_power * lengths.a_b / lengths.p_m
   let primary_copper_loss = self.params.phases.to_double() *
     self.params.r1 *
@@ -166,6 +168,7 @@ pub fn OperatingReadout::characteristics(
     secondary_copper_loss,
     primary_copper_loss,
     core_loss,
+    mechanical_loss: self.params.mechanical_loss,
     efficiency: output_power / input_power,
   }
 }
