@@ -111,10 +111,11 @@ fn Viewport::to_screen(self : Self, p : PlotPoint) -> @vg.Point {
 ///|
 pub fn render_svg(
   diagram : CircleDiagram,
+  output_power~ : Double,
   size? : DiagramSize = default_size(),
 ) -> String raise CircleDiagramError {
   validate_render_size(size)
-  let construction = make_default_render_construction(diagram)
+  let construction = make_readout_construction(diagram, output_power~)
   let vp = Viewport(size, construction.bounds)
   let doc = @svg.new_svg(size.width, size.height).render_rectangle(
     0.0,

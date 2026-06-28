@@ -13,7 +13,10 @@ moon run cmd/main > circle_diagram.svg
 test {
   let params = example_params()
   let diagram = make_circle_diagram(params, point_count=48)
-  ignore(render_svg(diagram, size={ width: 900.0, height: 640.0 }))
+  let output_power = operating_point(params, slip=0.05).output_power
+  ignore(
+    render_svg(diagram, output_power~, size={ width: 900.0, height: 640.0 }),
+  )
 }
 ```
 

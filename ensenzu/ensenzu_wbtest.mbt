@@ -20,8 +20,10 @@ fn perpendicular(
 
 ///|
 test "construction invariants" {
-  let diagram = make_circle_diagram(example_params())
-  let k = make_default_render_construction(diagram)
+  let params = example_params()
+  let diagram = make_circle_diagram(params)
+  let output_power = operating_point(params, slip=0.05).output_power
+  let k = make_readout_construction(diagram, output_power~)
   assert_true(k.d.x > k.o.x)
   assert_true(close_to(k.c.y, k.n.y))
   assert_true(close_to(k.c.distance(k.n), k.radius))

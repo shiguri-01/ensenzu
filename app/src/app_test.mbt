@@ -47,10 +47,21 @@ test "characteristics are computed when output_power is valid" {
 }
 
 ///|
-test "characteristics are None when output_power is zero" {
+test "output_power changes rendered readout lines" {
+  let fields = @app.default_app_fields()
+  let first = @app.model_from_fields({ ..fields, output_power: "900" })
+  let second = @app.model_from_fields({ ..fields, output_power: "1100" })
+  assert_true(first.error == None)
+  assert_true(second.error == None)
+  assert_true(first.svg != second.svg)
+  assert_true(first.line_lengths != second.line_lengths)
+}
+
+///|
+test "invalid output_power shows an error" {
   let fields = { ..@app.default_app_fields(), output_power: "0" }
   let model = @app.model_from_fields(fields)
-  assert_true(model.error == None)
+  assert_true(model.error is Some(_))
   assert_true(model.characteristics == None)
   assert_true(model.line_lengths == None)
 }

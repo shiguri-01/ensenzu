@@ -240,7 +240,7 @@ pub fn render_app_svg(
   params : AppParams,
 ) -> String raise @ensenzu.CircleDiagramError {
   let diagram = build_diagram(params)
-  @ensenzu.render_svg(diagram, size={
+  @ensenzu.render_svg(diagram, output_power=params.output_power, size={
     width: params.width,
     height: params.height,
   })
@@ -283,22 +283,9 @@ fn read_operating_values(
 ) -> (
   @ensenzu.CircleDiagramCharacteristics?,
   @ensenzu.CharacteristicLineLengths?,
-) {
-  if output_power <= 0.0 {
-    (None, None)
-  } else {
-    try {
-      let readout = @ensenzu.read_at_output_power(diagram, output_power~)
-      (
-        Some(readout.characteristics()),
-        Some(readout.characteristic_line_lengths()),
-      )
-    } catch {
-      _ => (None, None)
-    } noraise {
-      x => x
-    }
-  }
+) raise @ensenzu.CircleDiagramError {
+  let readout = @ensenzu.read_at_output_power(diagram, output_power~)
+  (Some(readout.characteristics()), Some(readout.characteristic_line_lengths()))
 }
 
 ///|
@@ -309,16 +296,16 @@ fn render_from_fields(fields : AppFields) -> RenderResult raise RenderError {
   let diagram = build_diagram(params) catch {
     InvalidInput(msg) | GeometryError(msg) => raise RenderError(msg)
   }
-  let svg = @ensenzu.render_svg(diagram, size={
+  let svg = @ensenzu.render_svg(diagram, output_power=params.output_power, size={
     width: params.width,
     height: params.height,
   }) catch {
     InvalidInput(msg) | GeometryError(msg) => raise RenderError(msg)
   }
-  let (characteristics, line_lengths) = read_operating_values(
-    diagram,
-    output_power=params.output_power,
-  )
+  let values = read_operating_values(diagram, output_power=params.output_power) catch {
+    InvalidInput(msg) | GeometryError(msg) => raise RenderError(msg)
+  }
+  let (characteristics, line_lengths) = values
   { svg, characteristics, line_lengths }
 }
 

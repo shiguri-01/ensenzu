@@ -28,9 +28,14 @@ test "operating points are finite and plausible" {
 
 ///|
 test "diagram point count and svg output" {
-  let diagram = make_circle_diagram(example_params(), point_count=16)
+  let params = example_params()
+  let diagram = make_circle_diagram(params, point_count=16)
   assert_eq(diagram.points.length(), 16)
-  let svg = render_svg(diagram, size={ width: 480.0, height: 320.0 })
+  let output_power = operating_point(params, slip=0.05).output_power
+  let svg = render_svg(diagram, output_power~, size={
+    width: 480.0,
+    height: 320.0,
+  })
   assert_true(svg.contains("<svg"))
   assert_true(svg.contains("output line"))
 }
@@ -133,8 +138,14 @@ test "invalid slip above locked rotor returns an error" {
 
 ///|
 test "invalid render size returns an error" {
-  let diagram = make_circle_diagram(example_params(), point_count=16)
-  try ignore(render_svg(diagram, size={ width: 30.0, height: 30.0 })) catch {
+  let params = example_params()
+  let diagram = make_circle_diagram(params, point_count=16)
+  let output_power = operating_point(params, slip=0.05).output_power
+  try
+    ignore(
+      render_svg(diagram, output_power~, size={ width: 30.0, height: 30.0 }),
+    )
+  catch {
     InvalidInput(_) => ()
     _ => fail("expected InvalidInput")
   } noraise {

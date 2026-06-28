@@ -18,7 +18,7 @@ pub fn operating_point(CircuitParams, slip~ : Double) -> OperatingPoint raise Ci
 
 pub fn read_at_output_power(CircleDiagram, output_power~ : Double) -> OperatingReadout raise CircleDiagramError
 
-pub fn render_svg(CircleDiagram, size? : DiagramSize) -> String raise CircleDiagramError
+pub fn render_svg(CircleDiagram, output_power~ : Double, size? : DiagramSize) -> String raise CircleDiagramError
 
 // Errors
 pub(all) suberror CircleDiagramError {

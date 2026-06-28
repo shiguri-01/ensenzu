@@ -35,29 +35,15 @@ struct Construction {
 } derive(Debug, Eq)
 
 ///|
-const DEFAULT_RENDER_READOUT_SLIP : Double = 0.05
-
-///|
 const AUXILIARY_VERTICAL_EXTENSION_RATIO : Double = 0.18
-
-///|
-fn make_default_render_construction(
-  diagram : CircleDiagram,
-) -> Construction raise CircleDiagramError {
-  let representative = operating_point(
-    diagram.params,
-    slip=DEFAULT_RENDER_READOUT_SLIP,
-  )
-  make_readout_construction(diagram, output_power=representative.output_power)
-}
 
 ///|
 fn make_readout_construction(
   diagram : CircleDiagram,
   output_power~ : Double,
 ) -> Construction raise CircleDiagramError {
-  guard output_power >= 0.0 else {
-    raise InvalidInput("output_power must not be negative")
+  guard output_power > 0.0 else {
+    raise InvalidInput("output_power must be positive")
   }
   let o = PlotPoint(x=0.0, y=0.0)
   let n = ideal_no_load_point(diagram.params)
