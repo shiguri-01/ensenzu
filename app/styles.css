@@ -291,7 +291,7 @@ input:focus {
 
 .input-unit {
     color: var(--quiet);
-    font-size: 13px;
+    font-size: 14px;
 }
 
 /* ── Readout column ─────────────────────────────────── */
@@ -348,7 +348,7 @@ input:focus {
 
 .readout-unit {
     color: var(--quiet);
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .readout-empty {
