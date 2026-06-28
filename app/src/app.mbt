@@ -457,10 +457,7 @@ fn read_operating_values(
 }
 
 ///|
-fn render_from_fields(fields : AppFields) -> RenderResult raise RenderError {
-  let params = fields.to_params() catch {
-    InvalidField(label, msg) => raise RenderError("\{label}: \{msg}")
-  }
+fn render_from_params(params : AppParams) -> RenderResult raise RenderError {
   let diagram = build_diagram(params) catch {
     InvalidInput(msg) | GeometryError(msg) => raise RenderError(msg)
   }
@@ -475,6 +472,14 @@ fn render_from_fields(fields : AppFields) -> RenderResult raise RenderError {
   }
   let (characteristics, line_lengths) = values
   { svg, characteristics, line_lengths }
+}
+
+///|
+fn render_from_fields(fields : AppFields) -> RenderResult raise RenderError {
+  let params = fields.to_params() catch {
+    InvalidField(label, msg) => raise RenderError("\{label}: \{msg}")
+  }
+  render_from_params(params)
 }
 
 ///|

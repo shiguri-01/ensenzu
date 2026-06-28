@@ -131,3 +131,29 @@ test "invalid output_power shows an error" {
   assert_true(model.characteristics == None)
   assert_true(model.line_lengths == None)
 }
+
+///|
+test "diagram api response returns svg and characteristics" {
+  let body = @app.ApiDiagramRequest::from_params(@app.default_app_params())
+    .to_json()
+    .stringify()
+  let json = @json.parse(@app.render_api_response_json(body))
+  let response : @app.ApiDiagramResponse = @json.from_json(json)
+  assert_true(response.ok)
+  guard response.payload is Some(payload) else { fail("expected payload") }
+  assert_true(payload.svg.contains("<svg"))
+  guard payload.characteristics is Some(c) else {
+    fail("expected characteristics")
+  }
+  assert_true(c.primary_current > 0.0)
+  assert_true(payload.line_lengths is Some(_))
+}
+
+///|
+test "diagram api response reports invalid json" {
+  let json = @json.parse(@app.render_api_response_json("{"))
+  let response : @app.ApiDiagramResponse = @json.from_json(json)
+  assert_true(!response.ok)
+  assert_true(response.payload == None)
+  assert_true(response.error is Some(_))
+}

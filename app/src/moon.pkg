@@ -2,8 +2,13 @@ import {
   "moonbit-community/rabbita",
   "moonbit-community/rabbita/cmd",
   "moonbit-community/rabbita/html",
+  "moonbitlang/core/json",
   "moonbitlang/core/string",
   "shiguri-01/ensenzu",
 }
 
 supported_targets = "js"
+
+options(
+  link: { "js": { "exports": [ "render_api_response_json" ], "format": "esm" } },
+)

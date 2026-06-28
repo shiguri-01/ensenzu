@@ -4,6 +4,7 @@ package "shiguri-01/app"
 import {
   "moonbit-community/rabbita",
   "moonbitlang/core/debug",
+  "moonbitlang/core/json",
   "shiguri-01/ensenzu",
 }
 
@@ -20,6 +21,10 @@ pub fn model_from_fields(AppFields, previous_svg? : String, show_advanced? : Boo
 
 pub fn mount_app() -> Unit
 
+pub fn render_api_response(ApiDiagramRequest) -> ApiDiagramResponse
+
+pub fn render_api_response_json(String) -> String
+
 pub fn render_app_svg(AppParams) -> String raise @ensenzu.CircleDiagramError
 
 pub fn render_default_svg() -> String raise @ensenzu.CircleDiagramError
@@ -32,6 +37,76 @@ pub(all) suberror AppInputError {
 } derive(@debug.Debug)
 
 // Types and methods
+pub(all) struct ApiCharacteristics {
+  slip : Double
+  primary_current : Double
+  active_current_component : Double
+  power_factor : Double
+  input_power : Double
+  air_gap_power : Double
+  output_power : Double
+  torque : Double
+  secondary_copper_loss : Double
+  primary_copper_loss : Double
+  core_loss : Double
+  mechanical_loss : Double
+  efficiency : Double
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+
+pub(all) struct ApiDiagramPayload {
+  svg : String
+  characteristics : ApiCharacteristics?
+  line_lengths : ApiLineLengths?
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+
+pub(all) struct ApiDiagramRequest {
+  input_source : ApiInputSource
+  phase_voltage : Double
+  frequency : Double
+  poles : Int
+  phases : Int
+  r1 : Double
+  x1 : Double
+  r2 : Double
+  x2 : Double
+  xm : Double
+  core_loss_resistance : Double
+  mechanical_loss : Double
+  no_load_input_power : Double
+  no_load_current : Double
+  locked_rotor_voltage : Double
+  locked_rotor_input_power : Double
+  locked_rotor_current : Double
+  width : Double
+  height : Double
+  output_power : Double
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+pub fn ApiDiagramRequest::from_params(AppParams) -> Self
+
+pub(all) struct ApiDiagramResponse {
+  ok : Bool
+  payload : ApiDiagramPayload?
+  error : String?
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+
+pub(all) enum ApiInputSource {
+  LTypeEquivalentCircuit
+  NoLoadLockedRotorTest
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+
+pub(all) struct ApiLineLengths {
+  o_p : Double
+  o_m : Double
+  p_m : Double
+  p_a : Double
+  p_b : Double
+  a_b : Double
+  f_y : Double
+  f_s : Double
+  g_r : Double
+  g_s : Double
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+
 pub(all) struct AppFields {
   input_source : InputSource
   phase_voltage : String

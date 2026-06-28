@@ -1,0 +1,220 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "ensenzu-api",
+    "version": "0.1.0",
+    "description": "API for rendering induction-motor circle diagrams and reading operating characteristics."
+  },
+  "paths": {
+    "/api/diagram": {
+      "post": {
+        "summary": "Render a circle diagram",
+        "description": "Calculates the circle diagram on the server and returns an SVG plus operating characteristics.",
+        "operationId": "renderDiagram",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiDiagramRequest"
+              },
+              "examples": {
+                "noLoadLockedRotorTest": {
+                  "summary": "No-load and locked-rotor test input",
+                  "value": {
+                    "input_source": "NoLoadLockedRotorTest",
+                    "phase_voltage": 200,
+                    "frequency": 50,
+                    "poles": 4,
+                    "phases": 3,
+                    "r1": 0.7,
+                    "x1": 1.2,
+                    "r2": 0.6,
+                    "x2": 1.1,
+                    "xm": 30,
+                    "core_loss_resistance": 500,
+                    "mechanical_loss": 20,
+                    "no_load_input_power": 110,
+                    "no_load_current": 3.65,
+                    "locked_rotor_voltage": 46.19,
+                    "locked_rotor_input_power": 900,
+                    "locked_rotor_current": 10,
+                    "width": 900,
+                    "height": 640,
+                    "output_power": 400
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Diagram render result. Calculation errors are represented with ok=false in the response body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiDiagramResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiDiagramResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ApiInputSource": {
+        "type": "string",
+        "enum": ["LTypeEquivalentCircuit", "NoLoadLockedRotorTest"]
+      },
+      "ApiDiagramRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "input_source",
+          "phase_voltage",
+          "frequency",
+          "poles",
+          "phases",
+          "r1",
+          "x1",
+          "r2",
+          "x2",
+          "xm",
+          "core_loss_resistance",
+          "mechanical_loss",
+          "no_load_input_power",
+          "no_load_current",
+          "locked_rotor_voltage",
+          "locked_rotor_input_power",
+          "locked_rotor_current",
+          "width",
+          "height",
+          "output_power"
+        ],
+        "properties": {
+          "input_source": { "$ref": "#/components/schemas/ApiInputSource" },
+          "phase_voltage": { "type": "number", "exclusiveMinimum": 0 },
+          "frequency": { "type": "number", "exclusiveMinimum": 0 },
+          "poles": { "type": "integer", "exclusiveMinimum": 0 },
+          "phases": { "type": "integer", "exclusiveMinimum": 0 },
+          "r1": { "type": "number" },
+          "x1": { "type": "number" },
+          "r2": { "type": "number" },
+          "x2": { "type": "number" },
+          "xm": { "type": "number" },
+          "core_loss_resistance": { "type": "number" },
+          "mechanical_loss": { "type": "number" },
+          "no_load_input_power": { "type": "number" },
+          "no_load_current": { "type": "number" },
+          "locked_rotor_voltage": { "type": "number" },
+          "locked_rotor_input_power": { "type": "number" },
+          "locked_rotor_current": { "type": "number" },
+          "width": { "type": "number", "exclusiveMinimum": 0 },
+          "height": { "type": "number", "exclusiveMinimum": 0 },
+          "output_power": { "type": "number", "exclusiveMinimum": 0 }
+        }
+      },
+      "ApiDiagramResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["ok"],
+        "properties": {
+          "ok": { "type": "boolean" },
+          "payload": {
+            "anyOf": [
+              { "$ref": "#/components/schemas/ApiDiagramPayload" },
+              { "type": "null" }
+            ]
+          },
+          "error": {
+            "type": ["string", "null"]
+          }
+        }
+      },
+      "ApiDiagramPayload": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["svg"],
+        "properties": {
+          "svg": { "type": "string", "description": "Rendered SVG document." },
+          "characteristics": {
+            "anyOf": [
+              { "$ref": "#/components/schemas/ApiCharacteristics" },
+              { "type": "null" }
+            ]
+          },
+          "line_lengths": {
+            "anyOf": [
+              { "$ref": "#/components/schemas/ApiLineLengths" },
+              { "type": "null" }
+            ]
+          }
+        }
+      },
+      "ApiCharacteristics": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "slip",
+          "primary_current",
+          "active_current_component",
+          "power_factor",
+          "input_power",
+          "air_gap_power",
+          "output_power",
+          "torque",
+          "secondary_copper_loss",
+          "primary_copper_loss",
+          "core_loss",
+          "mechanical_loss",
+          "efficiency"
+        ],
+        "properties": {
+          "slip": { "type": "number" },
+          "primary_current": { "type": "number" },
+          "active_current_component": { "type": "number" },
+          "power_factor": { "type": "number" },
+          "input_power": { "type": "number" },
+          "air_gap_power": { "type": "number" },
+          "output_power": { "type": "number" },
+          "torque": { "type": "number" },
+          "secondary_copper_loss": { "type": "number" },
+          "primary_copper_loss": { "type": "number" },
+          "core_loss": { "type": "number" },
+          "mechanical_loss": { "type": "number" },
+          "efficiency": { "type": "number" }
+        }
+      },
+      "ApiLineLengths": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["o_p", "o_m", "p_m", "p_a", "p_b", "a_b", "f_y", "f_s", "g_r", "g_s"],
+        "properties": {
+          "o_p": { "type": "number" },
+          "o_m": { "type": "number" },
+          "p_m": { "type": "number" },
+          "p_a": { "type": "number" },
+          "p_b": { "type": "number" },
+          "a_b": { "type": "number" },
+          "f_y": { "type": "number" },
+          "f_s": { "type": "number" },
+          "g_r": { "type": "number" },
+          "g_s": { "type": "number" }
+        }
+      }
+    }
+  }
+}
