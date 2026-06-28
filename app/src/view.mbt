@@ -238,10 +238,9 @@ fn characteristic_rows(
   lengths~ : @ensenzu.CharacteristicLineLengths?,
 ) -> Array[@rabbita.Html] {
   let base = [
-    readout_row(label="滑り", value=fmt_pct(c.slip), unit="%"),
     readout_row(
-      label="入力電流",
-      value=fmt_num(c.input_current, 3),
+      label="一次電流",
+      value=fmt_num(c.primary_current, 3),
       unit="A",
     ),
     readout_row(
@@ -249,11 +248,21 @@ fn characteristic_rows(
       value=fmt_num(c.active_current_component, 3),
       unit="A",
     ),
-    readout_row(label="力率", value=fmt_pct(c.power_factor), unit="%"),
     readout_row(label="入力電力", value=fmt_num(c.input_power, 1), unit="W"),
+    readout_row(
+      label="一次銅損",
+      value=fmt_num(c.primary_copper_loss, 1),
+      unit="W",
+    ),
+    readout_row(label="鉄損", value=fmt_num(c.core_loss, 1), unit="W"),
     readout_row(
       label="空隙電力",
       value=fmt_num(c.air_gap_power, 1),
+      unit="W",
+    ),
+    readout_row(
+      label="二次銅損",
+      value=fmt_num(c.secondary_copper_loss, 1),
       unit="W",
     ),
     readout_row(
@@ -261,8 +270,10 @@ fn characteristic_rows(
       value=fmt_num(c.output_power, 1),
       unit="W",
     ),
-    readout_row(label="トルク", value=fmt_num(c.torque, 3), unit="N·m"),
     readout_row(label="効率", value=fmt_pct(c.efficiency), unit="%"),
+    readout_row(label="力率", value=fmt_pct(c.power_factor), unit="%"),
+    readout_row(label="滑り", value=fmt_pct(c.slip), unit="%"),
+    readout_row(label="トルク", value=fmt_num(c.torque, 3), unit="N·m"),
   ]
   let extra = match lengths {
     None => []

@@ -57,13 +57,16 @@ pub struct CircleDiagram {
 
 pub struct CircleDiagramCharacteristics {
   slip : Double
-  input_current : Double
+  primary_current : Double
   active_current_component : Double
   power_factor : Double
   input_power : Double
   air_gap_power : Double
   output_power : Double
   torque : Double
+  secondary_copper_loss : Double
+  primary_copper_loss : Double
+  core_loss : Double
   efficiency : Double
 } derive(Eq, @debug.Debug)
 

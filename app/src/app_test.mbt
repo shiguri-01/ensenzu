@@ -39,11 +39,15 @@ test "characteristics are computed when output_power is valid" {
   guard model.line_lengths is Some(lengths) else {
     fail("expected line lengths")
   }
-  assert_true(c.input_current > 0.0)
+  assert_true(c.primary_current > 0.0)
   assert_true(c.efficiency > 0.0 && c.efficiency < 1.0)
   assert_true(c.power_factor > 0.0 && c.power_factor <= 1.0)
-  assert_eq(c.input_current, lengths.o_p)
+  assert_eq(c.primary_current, lengths.o_p)
   assert_eq(c.active_current_component, lengths.p_m)
+  assert_true(c.torque > 0.0)
+  assert_true(c.secondary_copper_loss > 0.0)
+  assert_true(c.primary_copper_loss >= 0.0)
+  assert_true(c.core_loss > 0.0)
 }
 
 ///|

@@ -79,13 +79,16 @@ pub struct CharacteristicLineLengths {
 ///|
 pub struct CircleDiagramCharacteristics {
   slip : Double
-  input_current : Double
+  primary_current : Double
   active_current_component : Double
   power_factor : Double
   input_power : Double
   air_gap_power : Double
   output_power : Double
   torque : Double
+  secondary_copper_loss : Double
+  primary_copper_loss : Double
+  core_loss : Double
   efficiency : Double
 } derive(Debug, Eq)
 
@@ -141,15 +144,28 @@ pub fn OperatingReadout::characteristics(
     lengths.p_m
   let air_gap_power = input_power * lengths.p_b / lengths.p_m
   let output_power = input_power * lengths.p_a / lengths.p_m
+  let secondary_copper_loss = input_power * lengths.a_b / lengths.p_m
+  let primary_copper_loss = self.params.phases.to_double() *
+    self.params.r1 *
+    lengths.o_p *
+    lengths.o_p
+  let core_loss = self.params.phases.to_double() *
+    self.params.phase_voltage *
+    self.params.phase_voltage /
+    self.params.core_loss_resistance
+  let torque = air_gap_power / synchronous_speed_rad_per_sec(self.params)
   {
     slip: lengths.g_r / lengths.g_s,
-    input_current: lengths.o_p,
+    primary_current: lengths.o_p,
     active_current_component: lengths.p_m,
     power_factor: lengths.p_m / lengths.o_p,
     input_power,
     air_gap_power,
     output_power,
-    torque: air_gap_power / synchronous_speed_rad_per_sec(self.params),
+    torque,
+    secondary_copper_loss,
+    primary_copper_loss,
+    core_loss,
     efficiency: output_power / input_power,
   }
 }

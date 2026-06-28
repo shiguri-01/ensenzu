@@ -48,10 +48,13 @@ test "diagram lengths and characteristics are available" {
   let readout = read_at_output_power(diagram, output_power~)
   let lengths = readout.characteristic_line_lengths()
   let characteristics = readout.characteristics()
-  assert_true(characteristics.input_current > 0.0)
+  assert_true(characteristics.primary_current > 0.0)
   assert_true(characteristics.input_power > 0.0)
   assert_true(characteristics.output_power > 0.0)
   assert_true(characteristics.torque > 0.0)
+  assert_true(characteristics.secondary_copper_loss > 0.0)
+  assert_true(characteristics.primary_copper_loss >= 0.0)
+  assert_true(characteristics.core_loss > 0.0)
   assert_true(characteristics.efficiency > 0.0)
   assert_true(lengths.o_p > 0.0)
   assert_true(lengths.p_m > 0.0)
@@ -63,6 +66,27 @@ test "diagram lengths and characteristics are available" {
   assert_true(lengths.g_r > 0.0)
   assert_true(lengths.g_s > 0.0)
   assert_true(almost_equal(characteristics.output_power, output_power))
+  assert_true(
+    almost_equal(
+      characteristics.secondary_copper_loss,
+      characteristics.input_power * lengths.a_b / lengths.p_m,
+    ),
+  )
+  assert_true(
+    almost_equal(
+      characteristics.primary_copper_loss,
+      params.phases.to_double() * params.r1 * lengths.o_p * lengths.o_p,
+    ),
+  )
+  assert_true(
+    almost_equal(
+      characteristics.core_loss,
+      params.phases.to_double() *
+      params.phase_voltage *
+      params.phase_voltage /
+      params.core_loss_resistance,
+    ),
+  )
   assert_true(
     almost_equal(
       characteristics.efficiency,
@@ -85,12 +109,35 @@ test "circle diagram readout matches equivalent circuit calculation" {
   )
   let actual = readout.characteristics()
   assert_true(almost_equal(actual.slip, expected.slip))
-  assert_true(almost_equal(actual.input_current, expected.input_current.abs()))
+  assert_true(
+    almost_equal(actual.primary_current, expected.input_current.abs()),
+  )
   assert_true(almost_equal(actual.power_factor, expected.power_factor))
   assert_true(almost_equal(actual.input_power, expected.input_power))
   assert_true(almost_equal(actual.air_gap_power, expected.air_gap_power))
   assert_true(almost_equal(actual.output_power, expected.output_power))
   assert_true(almost_equal(actual.torque, expected.torque))
+  assert_true(
+    almost_equal(
+      actual.secondary_copper_loss,
+      expected.air_gap_power - expected.output_power,
+    ),
+  )
+  assert_true(
+    almost_equal(
+      actual.primary_copper_loss,
+      params.phases.to_double() * params.r1 * expected.input_current.abs2(),
+    ),
+  )
+  assert_true(
+    almost_equal(
+      actual.core_loss,
+      params.phases.to_double() *
+      params.phase_voltage *
+      params.phase_voltage /
+      params.core_loss_resistance,
+    ),
+  )
   assert_true(almost_equal(actual.efficiency, expected.efficiency))
 }
 
