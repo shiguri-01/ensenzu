@@ -512,9 +512,38 @@ fn number_input(
       min=constraint.min(),
       title=constraint.title(),
       required=true,
-      on_input=text => emit(Change(key, text)),
+      attrs=decimal_number_attrs(key~, emit~),
     )
   }
+}
+
+///|
+fn allow_decimal_step(event : @dom.Event) -> String? {
+  guard event.target().to_html_input_element() is Some(input) else {
+    return None
+  }
+  // Rabbita's typed step API only accepts Int, but decimal number fields need
+  // step="any" so browser validation does not reject valid fractional inputs.
+  input.set_attribute("step", "any")
+  Some(input.value())
+}
+
+///|
+fn decimal_number_attrs(
+  key~ : FieldKey,
+  emit~ : @rabbita.Emit[Msg],
+) -> @html.Attrs {
+  @html.Attrs::build()
+  .on_focus(event => {
+    ignore(allow_decimal_step(event.as_event()))
+    @rabbita.none
+  })
+  .on_input(event => {
+    match allow_decimal_step(event.as_event()) {
+      Some(value) => emit(Change(key, value))
+      None => @rabbita.none
+    }
+  })
 }
 
 ///|

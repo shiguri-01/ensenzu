@@ -62,6 +62,20 @@ test "output_power changes rendered readout lines" {
 }
 
 ///|
+test "equivalent circuit accepts fractional resistances" {
+  let fields = {
+    ..@app.default_app_fields(),
+    input_source: @app.LTypeEquivalentCircuit,
+    r1: "0.7",
+    r2: "0.45",
+  }
+  let model = @app.model_from_fields(fields)
+  assert_true(model.error == None)
+  assert_true(model.svg.contains("<svg"))
+  assert_true(model.characteristics is Some(_))
+}
+
+///|
 test "no-load and locked-rotor test input renders characteristics" {
   let fields = {
     ..@app.default_app_fields(),
