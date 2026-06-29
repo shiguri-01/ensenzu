@@ -1,8 +1,13 @@
 # ensenzu
 
-> Tool for rendering induction-motor circle diagrams and calculating operating characteristics.
+> Tool for rendering induction-motor circle diagrams and calculating operating characteristics from equivalent-circuit values or no-load / locked-rotor test values.
 
-- App : https://ensenzu.shiguri.workers.dev/ (GUI, client-side rendered)
-- Agents should use the API instead of the CSR UI.
-- API: POST https://ensenzu.shiguri.workers.dev/api/diagram returns SVG and characteristics.
-- OpenAPI: https://ensenzu.shiguri.workers.dev/openapi.json
+## Interfaces
+
+- [GUI](https://ensenzu.shiguri.workers.dev/): For interactive use in a browser.
+- [API](https://ensenzu.shiguri.workers.dev/api/diagram): POST endpoint for programmatic use agents and other tools.
+
+The API returns an SVG diagram, calculated operating characteristics, and circle-diagram line lengths.
+
+For the exact request body, response body, and examples, see:
+https://ensenzu.shiguri.workers.dev/openapi.json
